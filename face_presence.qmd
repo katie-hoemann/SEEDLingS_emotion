@@ -1,0 +1,200 @@
+---
+title: "Face Presence Analysis"
+author: "Jeffrey Girard"
+date: "2025-05-11"
+format: 
+  html:
+    embed-resources: true
+    page-layout: full
+---
+
+## Setup
+
+```{r setup}
+#| message: false
+
+library(tidyverse)
+library(rstan)
+library(brms)
+library(easystats)
+library(ggeffects)
+```
+
+```{r data}
+info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
+part <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/partface_coding.rds") |> 
+  left_join(info, by = join_by(subject, wave, month))
+full <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/fullface_coding.rds") |> 
+  left_join(info, by = join_by(subject, wave, month))
+```
+
+## Partial Face Summary
+
+```{r df_part}
+df_part <- 
+  part |> 
+  filter(part_duration > 0) |> 
+  summarize(
+    .by = c(subject, wave, month),
+    sum_part = sum(part_duration),
+    pct_part = sum_part / first(session_duration)
+  ) |> 
+  arrange(subject, wave) |> 
+  mutate(
+    .by = subject,
+    window = row_number()
+  ) |> 
+  complete(subject, window)
+```
+
+```{r describe_part}
+describe_distribution(df_part, select = "pct_part") |> print_md()
+ggplot(df_part, aes(x = pct_part)) +
+  geom_histogram(na.rm = TRUE, color = "white", breaks = seq(0, 1, 0.025)) +
+  scale_x_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent) +
+  labs(x = "Percent of Video with a Partial Face", y = "Video Count")
+```
+
+## Full Face Summary
+
+```{r df_full}
+df_full <- 
+  full |> 
+  filter(full_duration > 0) |> 
+  summarize(
+    .by = c(subject, wave, month),
+    sum_full = sum(full_duration),
+    pct_full = sum_full / first(session_duration)
+  ) |> 
+  arrange(subject, wave) |> 
+  mutate(
+    .by = subject,
+    window = row_number()
+  ) |> 
+  complete(subject, window)
+```
+
+```{r describe_full}
+describe_distribution(df_full, select = "pct_full") |> print_md()
+ggplot(df_full, aes(x = pct_full)) +
+  geom_histogram(na.rm = TRUE, color = "white", breaks = seq(0, 1, 0.025)) +
+  scale_x_continuous(breaks = seq(0, 1, 0.2), labels = scales::percent) +
+  labs(x = "Percent of Video with a Full Face", y = "Video Count")
+```
+
+## Partial Face Model
+
+```{r part_null}
+part_null <- brm(
+  formula = pct_part | mi() ~ 1 + (1 | subject),
+  family = Beta(link = "logit", link_phi = "log"),
+  data = df_part,
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  init = 0,
+  file = "part_null",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+variance_decomposition(part_null)
+```
+
+```{r part_linear}
+#| warning: false
+
+part_linear <- brm(
+  formula = pct_part | mi() ~ 1 + window + (1 + window | subject),
+  family = Beta(link = "logit", link_phi = "log"),
+  data = df_part,
+  prior = set_prior("normal(0, 0.5)", class = "b"),
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  init = 0,
+  file = "part_linear",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+```
+
+```{r part_ppc}
+#| warning: false
+
+pp_check(part_linear, ndraws = 50)
+```
+
+```{r part_mpt}
+model_parameters(part_linear, effects = "all") |> print_md()
+```
+
+```{r part_cep}
+plot(conditional_effects(part_linear, effects = "window"), plot = FALSE)[[1]] +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = 1:4) +
+  labs(x = "Age Window", y = "Percent of Video with a Partial Face")
+```
+
+## Full Face Model
+
+```{r full_null}
+full_null <- brm(
+  formula = pct_full | mi() ~ 1 + (1 | subject),
+  family = Beta(link = "logit", link_phi = "log"),
+  data = df_full,
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  file = "full_null",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+variance_decomposition(full_null)
+```
+
+```{r full_linear}
+#| warning: false
+
+full_linear <- brm(
+  formula = pct_full | mi() ~ 1 + window + (1 + window | subject),
+  family = Beta(link = "logit", link_phi = "log"),
+  data = df_full,
+  prior = set_prior("normal(0, 0.5)", class = "b"),
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  init = 0,
+  file = "full_linear",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+```
+
+```{r full_ppc}
+#| warning: false
+
+pp_check(full_linear, ndraws = 50)
+```
+
+```{r full_mpt}
+model_parameters(full_linear, effects = "all") |> print_md()
+```
+
+```{r full_cep}
+plot(conditional_effects(full_linear, effects = "window"), plot = FALSE)[[1]] +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = 1:4) +
+  labs(x = "Window", y = "Percent of Video with a Full Face")
+```

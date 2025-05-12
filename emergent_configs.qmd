@@ -1,0 +1,252 @@
+---
+title: "Emergent Facial Configurations"
+author: "Jeffrey Girard"
+date: "2025-05-12"
+format: 
+  html:
+    page-layout: full
+    fig-width: 10
+    fig-format: png
+    fig-dpi: 300
+embed-resources: true
+---
+
+## Setup
+
+```{r setup}
+#| message: false
+
+library(tidyverse)
+library(furrr)
+library(kableExtra)
+library(facs) #remotes::install_github("jmgirard/facs")
+library(flexmix)
+
+info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
+facs <- 
+  read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
+  left_join(info)
+
+project_scheme <- scheme(
+  list(
+    occurrence = c(1:2, 4:39),
+    intensity = c(1:2, 4:39),
+    asymmetry = c(1:2, 4:39)
+  )
+)
+```
+
+```{r}
+plan("multisession", workers = 9)
+
+bin_events <- function(df, bin_size) {
+  # Determine the range of bins
+  start_time <- min(df$session_onset)
+  end_time <- max(df$session_offset)
+  bins <- seq(start_time, end_time, by = bin_size)
+  
+  # Initialize output data frame
+  output <- data.frame(
+    bin_onset = bins[-length(bins)],
+    bin_offset = bins[-1]
+  )
+  
+  # Add columns for each possible number
+  for (num in project_scheme$occurrence) {
+    output[[paste0("AU", num)]] <- 0
+  }
+  
+  # Iterate through each bin and mark numbers present in overlapping events
+  for (i in seq_len(nrow(output))) {
+    bin_start <- output$bin_onset[i]
+    bin_end <- output$bin_offset[i]
+    
+    # Identify events overlapping this bin
+    overlapping_events <- df[df$facs_onset < bin_end & df$facs_offset > bin_start, ]
+    
+    # Mark numbers for this bin
+    for (event_label in overlapping_events$facs_code) {
+      numbers_in_event <- pull_numcodes(event_label)
+      output[i, paste0("AU", numbers_in_event)] <- 1
+    }
+  }
+  
+  return(output)
+}
+```
+
+```{r facs_bin}
+facs_bin <- 
+  facs |> 
+  nest(.by = c(subject, wave, month)) |> 
+  mutate(
+    binned = future_map(
+      data, 
+      \(x) x |> 
+        bin_events(bin_size = 1/10) |> 
+        filter(rowSums(pick(starts_with("AU"))) > 0)
+    )
+  )
+```
+
+```{r}
+facs_bin_long <- 
+  facs_bin |> 
+  select(-data) |> 
+  unnest(binned)
+
+facs_bin_prev <- 
+  facs_bin_long |> 
+  summarize(across(starts_with("AU"), mean)) |> 
+  pivot_longer(everything(), names_to = "AU", values_to = "Occurrence")
+
+facs_bin_prev |> 
+  drop_na(Occurrence) |> 
+  arrange(desc(Occurrence)) |> 
+  kbl(digits = c(0, 3))
+
+facs_inc <- 
+  facs_bin_prev |> 
+  filter(Occurrence >= 0.01, AU != "AU50") |> 
+  pull(AU) |> 
+  print()
+```
+
+## Mixture Modeling
+
+```{r step}
+outfile <- "sfm_1-10_r5.rds"
+if (file.exists(outfile)) {
+  sres <- read_rds(outfile)
+} else {
+  sres <- 
+    stepFlexmix(
+      formula = as.formula(paste("cbind(", paste(facs_inc, collapse = ", "), ") ~ 1")),
+      data = facs_bin_long |> select(starts_with("AU")),
+      model = FLXMCmvbinary(),
+      k = 1:10,
+      nrep = 5,
+      unique = TRUE
+    )
+  write_rds(sres, "sfm_1-10_r5.rds", compress = "gz")
+}
+
+ures <- unique(sres)
+
+ures_perf <- 
+  tibble(
+    k = ures@k,
+    AIC = map_dbl(ures@models, AIC),
+    BIC = map_dbl(ures@models, BIC),
+    ICL = map_dbl(ures@models, ICL)
+  )
+kbl(ures_perf) |> kable_styling()
+
+ures_perf |> 
+  pivot_longer(-k, names_to = "stat", values_to = "value") |> 
+  ggplot(aes(x = k, y = value, color = stat, shape = stat)) +
+  geom_line(linewidth = 3/4) +
+  geom_point(size = 3) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(
+    x = "Number of Mixture Components",
+    y = "Performance (lower is better)",
+    color = "Metric",
+    shape = "Metric"
+  ) +
+  theme_classic()
+```
+
+### Four-Cluster Model (Favored by ICL)
+
+```{r}
+fit <- ures@models[[4]]
+parameters(fit) |> 
+  as_tibble(rownames = "AU") |> 
+  pivot_longer(-AU, names_to = "Cluster", values_to = "Prob") |> 
+  mutate(
+    AU = str_remove(AU, "center."),
+    Cluster = str_remove(Cluster, "Comp."),
+    across(AU:Cluster, \(x) factor(parse_number(x))),
+    AU = fct_rev(AU),
+    ClusterAlpha = factor(
+      Cluster, 
+      labels = paste0(LETTERS[1:fit@k], "\n(n=", fit@size, ")")
+    ),
+    Prob_label = sprintf("%.2f", Prob),
+    Prob_color = ifelse(Prob > .8, "white", "black")
+  ) |> 
+  ggplot(aes(
+    x = ClusterAlpha, 
+    y = AU, 
+    fill = Prob, 
+    label = Prob_label
+  )) +
+  geom_tile(color = "grey") +
+  geom_text(aes(color = Prob_color)) +
+  scale_x_discrete(position = "top", expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_color_identity() +
+  scale_fill_gradient(
+    low = "white", 
+    high = "#3182bd", 
+    limits = c(0, 1)
+  ) + 
+  guides(fill = guide_colorbar(
+    frame.colour = "black", 
+    ticks.colour = "black"
+  )) +
+  labs(
+    x = "Mixture Component", 
+    y = "Facial Action Unit (AU)", 
+    fill = "Probability"
+  ) +
+  theme_bw()
+```
+
+### Four-Cluster Model (Favored by ICL)
+
+```{r}
+fit <- ures@models[[3]]
+parameters(fit) |> 
+  as_tibble(rownames = "AU") |> 
+  pivot_longer(-AU, names_to = "Cluster", values_to = "Prob") |> 
+  mutate(
+    AU = str_remove(AU, "center."),
+    Cluster = str_remove(Cluster, "Comp."),
+    across(AU:Cluster, \(x) factor(parse_number(x))),
+    AU = fct_rev(AU),
+    ClusterAlpha = factor(
+      Cluster, 
+      labels = paste0(LETTERS[1:fit@k], "\n(n=", fit@size, ")")
+    ),
+    Prob_label = sprintf("%.2f", Prob),
+    Prob_color = ifelse(Prob > .8, "white", "black")
+  ) |> 
+  ggplot(aes(
+    x = ClusterAlpha, 
+    y = AU, 
+    fill = Prob, 
+    label = Prob_label
+  )) +
+  geom_tile(color = "grey") +
+  geom_text(aes(color = Prob_color)) +
+  scale_x_discrete(position = "top", expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_color_identity() +
+  scale_fill_gradient(
+    low = "white", 
+    high = "#3182bd", 
+    limits = c(0, 1)
+  ) + 
+  guides(fill = guide_colorbar(
+    frame.colour = "black", 
+    ticks.colour = "black"
+  )) +
+  labs(
+    x = "Mixture Component", 
+    y = "Facial Action Unit (AU)", 
+    fill = "Probability"
+  ) +
+  theme_bw()
+```
