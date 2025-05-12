@@ -202,6 +202,8 @@ parameters(fit) |>
     fill = "Probability"
   ) +
   theme_bw()
+
+ggsave("four-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ### Three-Cluster Model (Also Quite Good)
