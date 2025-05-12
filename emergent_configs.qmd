@@ -204,7 +204,7 @@ parameters(fit) |>
   theme_bw()
 ```
 
-### Four-Cluster Model (Favored by ICL)
+### Three-Cluster Model (Also Quite Good)
 
 ```{r}
 fit <- ures@models[[3]]
