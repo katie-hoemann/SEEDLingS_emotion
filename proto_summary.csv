@@ -1,0 +1,270 @@
+source,emotion,emotion_type,config_num,config_type,code,special,missing_aus,remaining_aus
+cordaro2018,amusement,,1,ICP,6+7+12+16+25+26+53,,53,6+7+12+16+25+26
+cordaro2018,amusement,,2,ICP,6+7+12+16+25+27+53,,53,6+7+12+16+25+27
+keltner2019,amusement,,1,prototype,6+7+12+25+26+53,,53,6+7+12+25+26
+cordaro2018,anger,,1,ICP,4+7,,,4+7
+du2014,anger,basic,1,prototype,4+7+24,,,4+7+24
+du2014,anger,basic,2,variant,4+7+10+24,,,4+7+10+24
+du2014,anger,basic,3,variant,4+7+17+24,,,4+7+17+24
+du2014,anger,basic,4,variant,4+7+23+24,,,4+7+23+24
+du2014,anger,basic,5,variant,4+7+10+17+24,,,4+7+10+17+24
+du2014,anger,basic,6,variant,4+7+10+23+24,,,4+7+10+23+24
+du2014,anger,basic,7,variant,4+7+17+23+24,,,4+7+17+23+24
+du2014,anger,basic,8,variant,4+7+10+17+23+24,,,4+7+10+17+23+24
+fig2002,anger,,1,prototype,4+5+7+10+22+23+25,,,4+5+7+10+22+23+25
+fig2002,anger,,2,prototype,4+5+7+10+22+23+26,,,4+5+7+10+22+23+26
+fig2002,anger,,3,prototype,4+5+7+10+22+23+25+26,,,4+5+7+10+22+23+25+26
+fig2002,anger,,4,prototype,4+5+7+10+23+25,,,4+5+7+10+23+25
+fig2002,anger,,5,prototype,4+5+7+10+23+26,,,4+5+7+10+23+26
+fig2002,anger,,6,prototype,4+5+7+10+23+25+26,,,4+5+7+10+23+25+26
+fig2002,anger,,7,prototype,4+5+7+23+25,,,4+5+7+23+25
+fig2002,anger,,8,prototype,4+5+7+23+26,,,4+5+7+23+26
+fig2002,anger,,9,prototype,4+5+7+23+25+26,,,4+5+7+23+25+26
+fig2002,anger,,10,prototype,4+5+7+17+23,,,4+5+7+17+23
+fig2002,anger,,11,prototype,4+5+7+17+24,,,4+5+7+17+24
+fig2002,anger,,12,prototype,4+5+7+23,,,4+5+7+23
+fig2002,anger,,13,prototype,4+5+7+24,,,4+5+7+24
+fig2002,anger,,14,variant,5+7+10+22+23+25,,,5+7+10+22+23+25
+fig2002,anger,,15,variant,5+7+10+22+23+26,,,5+7+10+22+23+26
+fig2002,anger,,16,variant,5+7+10+22+23+25+26,,,5+7+10+22+23+25+26
+fig2002,anger,,17,variant,4+7+10+22+23+25,,,4+7+10+22+23+25
+fig2002,anger,,18,variant,4+7+10+22+23+26,,,4+7+10+22+23+26
+fig2002,anger,,19,variant,4+7+10+22+23+25+26,,,4+7+10+22+23+25+26
+fig2002,anger,,20,variant,4+5+10+22+23+25,,,4+5+10+22+23+25
+fig2002,anger,,21,variant,4+5+10+22+23+26,,,4+5+10+22+23+26
+fig2002,anger,,22,variant,4+5+10+22+23+25+26,,,4+5+10+22+23+25+26
+fig2002,anger,,23,variant,4+5+7+22+23+25,,,4+5+7+22+23+25
+fig2002,anger,,24,variant,4+5+7+22+23+26,,,4+5+7+22+23+26
+fig2002,anger,,25,variant,4+5+7+22+23+25+26,,,4+5+7+22+23+25+26
+fig2002,anger,,26,variant,5+7+10+23+25,,,5+7+10+23+25
+fig2002,anger,,27,variant,5+7+10+23+26,,,5+7+10+23+26
+fig2002,anger,,28,variant,5+7+10+23+25+26,,,5+7+10+23+25+26
+fig2002,anger,,29,variant,4+7+10+23+25,,,4+7+10+23+25
+fig2002,anger,,30,variant,4+7+10+23+26,,,4+7+10+23+26
+fig2002,anger,,31,variant,4+7+10+23+25+26,,,4+7+10+23+25+26
+fig2002,anger,,32,variant,4+5+10+23+25,,,4+5+10+23+25
+fig2002,anger,,33,variant,4+5+10+23+26,,,4+5+10+23+26
+fig2002,anger,,34,variant,4+5+10+23+25+26,,,4+5+10+23+25+26
+fig2002,anger,,35,variant,5+7+23+25,,,5+7+23+25
+fig2002,anger,,36,variant,5+7+23+26,,,5+7+23+26
+fig2002,anger,,37,variant,5+7+23+25+26,,,5+7+23+25+26
+fig2002,anger,,38,variant,4+7+23+25,,,4+7+23+25
+fig2002,anger,,39,variant,4+7+23+26,,,4+7+23+26
+fig2002,anger,,40,variant,4+7+23+25+26,,,4+7+23+25+26
+fig2002,anger,,41,variant,4+5+23+25,,,4+5+23+25
+fig2002,anger,,42,variant,4+5+23+26,,,4+5+23+26
+fig2002,anger,,43,variant,4+5+23+25+26,,,4+5+23+25+26
+fig2002,anger,,44,variant,5+7+17+23,,,5+7+17+23
+fig2002,anger,,45,variant,4+7+17+23,,,4+7+17+23
+fig2002,anger,,46,variant,4+5+17+23,,,4+5+17+23
+fig2002,anger,,47,variant,5+7+17+24,,,5+7+17+24
+fig2002,anger,,48,variant,4+7+17+24,,,4+7+17+24
+fig2002,anger,,49,variant,4+5+17+24,,,4+5+17+24
+fig2002,anger,,50,variant,5+7+23,,,5+7+23
+fig2002,anger,,51,variant,4+7+23,,,4+7+23
+fig2002,anger,,52,variant,4+5+23,,,4+5+23
+fig2002,anger,,53,variant,5+7+24,,,5+7+24
+fig2002,anger,,54,variant,4+7+24,,,4+7+24
+fig2002,anger,,55,variant,4+5+24,,,4+5+24
+keltner2019,anger,,1,prototype,4+5+17+23+24,,,4+5+17+23+24
+matsumoto2008,anger,,1,prototype,4+5+22+23+24,,,4+5+22+23+24
+matsumoto2008,anger,,2,prototype,4+7+22+23+24,,,4+7+22+23+24
+matsumoto2008,anger,,3,prototype,4+5+7+22+23+24,,,4+5+7+22+23+24
+cordaro2018,awe,,1,ICP,1+2+5+12+25+26+53,,53,1+2+5+12+25+26
+cordaro2018,awe,,2,ICP,1+2+5+12+25+27+53,,53,1+2+5+12+25+27
+cordaro2018,confusion,,1,ICP,4+7,head tilt,,4+7
+keltner2019,confusion,,1,prototype,4+7+56,,56,4+7
+cordaro2018,contempt,,1,ICP,4+14+25,,,4+14+25
+matsumoto2008,contempt,,1,prototype,12+14,"U12, U14",,12+14
+cordaro2018,contentment,,1,ICP,12+43,deep breath,43,12
+keltner2019,contentment,,1,prototype,12+43,,43,12
+cordaro2018,coyness,,1,ICP,6+7+12+25+54,,54,6+7+12+25
+keltner2019,coyness,,1,prototype,6+7+12+25+26+52+54+61,,"52, 54, 61",6+7+12+25+26
+cordaro2018,desire,,1,ICP,7+12+25+26,,,7+12+25+26
+cordaro2018,desire,,1,ICP,6+7+12+25,,,6+7+12+25
+cordaro2018,desire,,2,ICP,7+12+25+27,,,7+12+25+27
+keltner2019,desire,,1,prototype,19+25+26+43,,43,19+25+26
+cordaro2018,disgust,,1,ICP,4+6+7+9+10+25+26,,,4+6+7+9+10+25+26
+cordaro2018,disgust,,2,ICP,4+6+7+9+10+25+27,,,4+6+7+9+10+25+27
+du2014,disgust,basic,1,prototype,9+10+17,,,9+10+17
+du2014,disgust,basic,2,variant,4+9+10+17,,,4+9+10+17
+du2014,disgust,basic,3,variant,9+10+17+24,,,9+10+17+24
+du2014,disgust,basic,4,variant,4+9+10+17+24,,,4+9+10+17+24
+fig2002,disgust,,1,prototype,9,,,9
+fig2002,disgust,,2,prototype,9+15+16,,,9+15+16
+fig2002,disgust,,3,prototype,9+16+26,,,9+16+26
+fig2002,disgust,,4,prototype,9+15+16+26,,,9+15+16+26
+fig2002,disgust,,5,prototype,9+17,,,9+17
+fig2002,disgust,,6,prototype,10,,,10
+fig2002,disgust,,7,prototype,10+16+25,,,10+16+25
+fig2002,disgust,,8,prototype,10+16+26,,,10+16+26
+fig2002,disgust,,9,prototype,10+16+25+26,,,10+16+25+26
+fig2002,disgust,,10,prototype,10+17,,,10+17
+keltner2019,disgust,,1,prototype,7+9+19+25+26,,,7+9+19+25+26
+matsumoto2008,disgust,,1,prototype,9,,,9
+matsumoto2008,disgust,,2,prototype,9+25,,,9+25
+matsumoto2008,disgust,,3,prototype,9+26,,,9+26
+matsumoto2008,disgust,,4,prototype,9+25+26,,,9+25+26
+matsumoto2008,disgust,,5,prototype,10,,,10
+matsumoto2008,disgust,,6,prototype,10+25,,,10+25
+matsumoto2008,disgust,,7,prototype,10+26,,,10+26
+matsumoto2008,disgust,,8,prototype,10+25+26,,,10+25+26
+matsumoto2008,disgust,,9,prototype,9+10,,,9+10
+matsumoto2008,disgust,,10,prototype,9+10+25,,,9+10+25
+matsumoto2008,disgust,,11,prototype,9+10+26,,,9+10+26
+matsumoto2008,disgust,,12,prototype,9+10+25+26,,,9+10+25+26
+cordaro2018,embarrassment,,1,ICP,6+7+12+25+54,control smile,54,6+7+12+25
+keltner2019,embarrassment,,1,prototype,7+12+15+52+54+64,face touch,"52, 54, 64",7+12+15
+cordaro2018,fear,,1,ICP,1+2+5+7+25+26,move back,,1+2+5+7+25+26
+cordaro2018,fear,,2,ICP,1+2+5+7+25+27,move back,,1+2+5+7+25+27
+du2014,fear,basic,1,prototype,1+4+20+25,,,1+4+20+25
+du2014,fear,basic,2,variant,1+2+4+20+25,,,1+2+4+20+25
+du2014,fear,basic,3,variant,1+4+5+20+25,,,1+4+5+20+25
+du2014,fear,basic,4,variant,1+4+20+25+26,,,1+4+20+25+26
+du2014,fear,basic,5,variant,1+2+4+5+20+25,,,1+2+4+5+20+25
+du2014,fear,basic,6,variant,1+2+4+20+25+26,,,1+2+4+20+25+26
+du2014,fear,basic,7,variant,1+4+5+20+25+26,,,1+4+5+20+25+26
+du2014,fear,basic,8,variant,1+2+4+5+20+25+26,,,1+2+4+5+20+25+26
+fig2002,fear,,1,prototype,1+2+4+5+20+25,,,1+2+4+5+20+25
+fig2002,fear,,2,prototype,1+2+4+5+20+26,,,1+2+4+5+20+26
+fig2002,fear,,3,prototype,1+2+4+5+20+27,,,1+2+4+5+20+27
+fig2002,fear,,4,prototype,1+2+4+5+20+25+26,,,1+2+4+5+20+25+26
+fig2002,fear,,5,prototype,1+2+4+5+20+25+27,,,1+2+4+5+20+25+27
+fig2002,fear,,6,prototype,1+2+4+5+25,,,1+2+4+5+25
+fig2002,fear,,7,prototype,1+2+4+5+26,,,1+2+4+5+26
+fig2002,fear,,8,prototype,1+2+4+5+27,,,1+2+4+5+27
+fig2002,fear,,9,prototype,1+2+4+5+25+26,,,1+2+4+5+25+26
+fig2002,fear,,10,prototype,1+2+4+5+25+27,,,1+2+4+5+25+27
+fig2002,fear,,11,variant,1+2+4+5+20+25,U20,,1+2+4+5+20+25
+fig2002,fear,,12,variant,1+2+4+5+20+26,U20,,1+2+4+5+20+26
+fig2002,fear,,13,variant,1+2+4+5+20+27,U20,,1+2+4+5+20+27
+fig2002,fear,,14,variant,1+2+4+5+20+25+26,U20,,1+2+4+5+20+25+26
+fig2002,fear,,15,variant,1+2+4+5+20+25+27,U20,,1+2+4+5+20+25+27
+fig2002,fear,,16,variant,1+2+4+5,,,1+2+4+5
+fig2002,fear,,17,variant,1+2+5,5Z,,1+2+5
+fig2002,fear,,18,variant,1+2+5+25,5Z,,1+2+5+25
+fig2002,fear,,19,variant,1+2+5+26,5Z,,1+2+5+26
+fig2002,fear,,20,variant,1+2+5+27,5Z,,1+2+5+27
+fig2002,fear,,21,variant,1+2+5+25+26,5Z,,1+2+5+25+26
+fig2002,fear,,22,variant,1+2+5+25+27,5Z,,1+2+5+25+27
+fig2002,fear,,23,variant,5+20,,,5+20
+fig2002,fear,,24,variant,5+20+25,,,5+20+25
+fig2002,fear,,25,variant,5+20+26,,,5+20+26
+fig2002,fear,,26,variant,5+20+27,,,5+20+27
+fig2002,fear,,27,variant,5+20+25+26,,,5+20+25+26
+fig2002,fear,,28,variant,5+20+25+27,,,5+20+25+27
+keltner2019,fear,,1,prototype,1+2+4+5+7+20+25,,,1+2+4+5+7+20+25
+matsumoto2008,fear,,1,prototype,1+2+4+5+20,,,1+2+4+5+20
+matsumoto2008,fear,,2,prototype,1+2+4+5+20+25,,,1+2+4+5+20+25
+matsumoto2008,fear,,3,prototype,1+2+4+5+20+26,,,1+2+4+5+20+26
+matsumoto2008,fear,,4,prototype,1+2+4+5+20+25+26,,,1+2+4+5+20+25+26
+cordaro2018,happiness,,1,ICP,6+7+12+16+25+26,,,6+7+12+16+25+26
+cordaro2018,happiness,,2,ICP,6+7+12+16+25+27,,,6+7+12+16+25+27
+du2014,happiness,basic,1,prototype,12+25,,,12+25
+du2014,happiness,basic,2,variant,6+12+25,,,6+12+25
+fig2002,happiness,,1,prototype,6+12,,,6+12
+fig2002,happiness,,2,prototype,12,12CD,,12
+keltner2019,happiness,,1,prototype,6+7+12+25+26,,,6+7+12+25+26
+matsumoto2008,happiness,,1,prototype,6+12,,,6+12
+matsumoto2008,happiness,,1,prototype,6+12,,,6+12
+keltner2019,interest,,1,prototype,1+2+12,,,1+2+12
+cordaro2018,pain,,1,ICP,4+6+7+20+25+43,head up or down,43,4+6+7+20+25
+keltner2019,pain,,1,prototype,4+6+7+9+17+18+23+24,,,4+6+7+9+17+18+23+24
+cordaro2018,pride,,1,ICP,7+12+53,sit up straight,53,7+12
+cordaro2018,relief,,1,ICP,12+18+25+26+43,"head up or down, breath out",43,12+18+25+26
+cordaro2018,relief,,2,ICP,12+18+25+27+43,"head up or down, breath out",43,12+18+25+27
+cordaro2018,sadness,,1,ICP,4+43+54,,"43, 54",4
+du2014,sadness,basic,1,prototype,4+15,,,4+15
+du2014,sadness,basic,2,variant,1+4+15,,,1+4+15
+du2014,sadness,basic,3,variant,4+6+15,,,4+6+15
+du2014,sadness,basic,4,variant,4+11+15,,,4+11+15
+du2014,sadness,basic,5,variant,4+15+17,,,4+15+17
+du2014,sadness,basic,6,variant,1+4+6+15,,,1+4+6+15
+du2014,sadness,basic,7,variant,1+4+11+15,,,1+4+11+15
+du2014,sadness,basic,8,variant,1+4+15+17,,,1+4+15+17
+du2014,sadness,basic,9,variant,4+6+11+15,,,4+6+11+15
+du2014,sadness,basic,10,variant,4+6+15+17,,,4+6+15+17
+du2014,sadness,basic,11,variant,4+11+15+17,,,4+11+15+17
+du2014,sadness,basic,12,variant,1+4+6+11+15,,,1+4+6+11+15
+du2014,sadness,basic,13,variant,1+4+6+15+17,,,1+4+6+15+17
+du2014,sadness,basic,14,variant,1+4+11+15+17,,,1+4+11+15+17
+du2014,sadness,basic,15,variant,4+6+11+15+17,,,4+6+11+15+17
+du2014,sadness,basic,16,variant,1+4+6+11+15+17,,,1+4+6+11+15+17
+fig2002,sadness,,1,prototype,1+4+11+15,15B,,1+4+11+15
+fig2002,sadness,,2,prototype,1+4+11+15+25,15B,,1+4+11+15+25
+fig2002,sadness,,3,prototype,1+4+11+15+26,15B,,1+4+11+15+26
+fig2002,sadness,,4,prototype,1+4+11+15+25+26,15B,,1+4+11+15+25+26
+fig2002,sadness,,5,prototype,1+4+11+15+54+64,15B,"54, 64",1+4+11+15
+fig2002,sadness,,6,prototype,1+4+11+15+25+54+64,15B,"54, 64",1+4+11+15+25
+fig2002,sadness,,7,prototype,1+4+11+15+26+54+64,15B,"54, 64",1+4+11+15+26
+fig2002,sadness,,8,prototype,1+4+11+15+25+26+54+64,15B,"54, 64",1+4+11+15+25+26
+fig2002,sadness,,9,prototype,1+4+15,,,1+4+15
+fig2002,sadness,,10,prototype,1+4+15+25,,,1+4+15+25
+fig2002,sadness,,11,prototype,1+4+15+26,,,1+4+15+26
+fig2002,sadness,,12,prototype,1+4+15+25+26,,,1+4+15+25+26
+fig2002,sadness,,13,prototype,1+4+15+54+64,,"54, 64",1+4+15
+fig2002,sadness,,14,prototype,1+4+15+25+54+64,,"54, 64",1+4+15+25
+fig2002,sadness,,15,prototype,1+4+15+26+54+64,,"54, 64",1+4+15+26
+fig2002,sadness,,16,prototype,1+4+15+25+26+54+64,,"54, 64",1+4+15+25+26
+fig2002,sadness,,17,prototype,6+15,,,6+15
+fig2002,sadness,,18,prototype,6+15+25,,,6+15+25
+fig2002,sadness,,19,prototype,6+15+26,,,6+15+26
+fig2002,sadness,,20,prototype,6+15+25+26,,,6+15+25+26
+fig2002,sadness,,21,prototype,6+15+54+64,,"54, 64",6+15
+fig2002,sadness,,22,prototype,6+15+25+54+64,,"54, 64",6+15+25
+fig2002,sadness,,23,prototype,6+15+26+54+64,,"54, 64",6+15+26
+fig2002,sadness,,24,prototype,6+15+25+26+54+64,,"54, 64",6+15+25+26
+fig2002,sadness,,25,variant,1+4+11,,,1+4+11
+fig2002,sadness,,26,variant,1+4+11+25,,,1+4+11+25
+fig2002,sadness,,27,variant,1+4+11+26,,,1+4+11+26
+fig2002,sadness,,28,variant,1+4+11+25+26,,,1+4+11+25+26
+fig2002,sadness,,29,variant,1+4+11+54+64,,"54, 64",1+4+11
+fig2002,sadness,,30,variant,1+4+11+25+54+64,,"54, 64",1+4+11+25
+fig2002,sadness,,31,variant,1+4+11+26+54+64,,"54, 64",1+4+11+26
+fig2002,sadness,,32,variant,1+4+11+25+26+54+64,,"54, 64",1+4+11+25+26
+fig2002,sadness,,33,variant,1+4+15+17,15B,,1+4+15+17
+fig2002,sadness,,34,variant,1+4+15+17+25,15B,,1+4+15+17+25
+fig2002,sadness,,35,variant,1+4+15+17+26,15B,,1+4+15+17+26
+fig2002,sadness,,36,variant,1+4+15+17+25+26,15B,,1+4+15+17+25+26
+fig2002,sadness,,37,variant,1+4+15+17+54+64,15B,"54, 64",1+4+15+17
+fig2002,sadness,,38,variant,1+4+15+17+25+54+64,15B,"54, 64",1+4+15+17+25
+fig2002,sadness,,39,variant,1+4+15+17+26+54+64,15B,"54, 64",1+4+15+17+26
+fig2002,sadness,,40,variant,1+4+15+17+25+26+54+64,15B,"54, 64",1+4+15+17+25+26
+fig2002,sadness,,41,variant,11+15,15B,,11+15
+fig2002,sadness,,42,variant,11+15+25,15B,,11+15+25
+fig2002,sadness,,43,variant,11+15+26,15B,,11+15+26
+fig2002,sadness,,44,variant,11+15+25+26,15B,,11+15+25+26
+fig2002,sadness,,45,variant,11+15+54+64,15B,"54, 64",11+15
+fig2002,sadness,,46,variant,11+15+25+54+64,15B,"54, 64",11+15+25
+fig2002,sadness,,47,variant,11+15+26+54+64,15B,"54, 64",11+15+26
+fig2002,sadness,,48,variant,11+15+25+26+54+64,15B,"54, 64",11+15+25+26
+fig2002,sadness,,49,variant,11+17,,,11+17
+fig2002,sadness,,50,variant,11+17+25,,,11+17+25
+fig2002,sadness,,51,variant,11+17+26,,,11+17+26
+fig2002,sadness,,52,variant,11+17+25+26,,,11+17+25+26
+keltner2019,sadness,,1,prototype,1+4+6+15+17,,,1+4+6+15+17
+matsumoto2008,sadness,,1,prototype,1+15,,,1+15
+matsumoto2008,sadness,,2,prototype,1+4+15,,,1+4+15
+matsumoto2008,sadness,,3,prototype,1+15+17,,,1+15+17
+matsumoto2008,sadness,,4,prototype,1+4+15+17,,,1+4+15+17
+cordaro2018,shame,,1,ICP,4+17+54,,54,4+17
+cordaro2018,surprise,,1,ICP,1+2+5+25+26,,,1+2+5+25+26
+cordaro2018,surprise,,2,ICP,1+2+5+25+27,,,1+2+5+25+27
+du2014,surprise,basic,1,prototype,1+2+25+26,,,1+2+25+26
+du2014,surprise,basic,2,variant,1+2+5+25+26,,,1+2+5+25+26
+fig2002,surprise,,1,prototype,1+2+5+26,5B,,1+2+5+26
+fig2002,surprise,,2,prototype,1+2+5+27,5B,,1+2+5+27
+fig2002,surprise,,3,variant,1+2+5,5B,,1+2+5
+fig2002,surprise,,4,variant,1+2+26,,,1+2+26
+fig2002,surprise,,5,variant,1+2+27,,,1+2+27
+fig2002,surprise,,6,variant,5+26,5B,,5+26
+fig2002,surprise,,7,variant,5+27,5B,,5+27
+keltner2019,surprise,,1,prototype,1+2+5+25+26,,,1+2+5+25+26
+matsumoto2008,surprise,,1,prototype,1+2+5+26,,,1+2+5+26
+matsumoto2008,surprise,,2,prototype,1+2+5+26,,,1+2+5+26
+matsumoto2008,surprise,,3,prototype,1+2+5+26,,,1+2+5+26
+cordaro2018,sympathy,,1,ICP,25+26+57,,57,25+26
+cordaro2018,sympathy,,2,ICP,25+27+57,,57,25+27
+keltner2019,sympathy,,1,prototype,1+17+24+57,,57,1+17+24
+cordaro2018,triumph,,1,ICP,6+7+12+25+26,fist in air,,6+7+12+25+26
+cordaro2018,triumph,,2,ICP,6+7+12+25+27,fist in air,,6+7+12+25+27
