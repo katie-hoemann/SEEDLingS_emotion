@@ -1,0 +1,269 @@
+---
+title: "Hypothesized Prototypes"
+author: "Jeffrey Girard"
+date: "2025-05-19"
+format: 
+  html:
+    page-layout: full
+    fig-width: 10
+    fig-format: png
+    fig-dpi: 300
+embed-resources: true
+---
+
+```{r setup}
+#| message: false
+
+library(tidyverse)
+library(furrr)
+library(kableExtra)
+library(facs) # remotes::install_github("jmgirard/facs")
+
+info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
+
+facs <- 
+  read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
+  left_join(info) |> 
+  mutate(event_id = str_c(subject, wave, facs_id, sep = "_"))
+
+project_scheme <- scheme(
+  list(
+    occurrence = c(1:2, 4:39),
+    intensity = c(1:2, 4:39),
+    asymmetry = c(1:2, 4:39)
+  )
+)
+
+protos <- 
+  prototypes |> 
+  filter(is.na(emotion_type) | emotion_type != "compound") |> 
+  mutate(
+    emotion = if_else(emotion %in% c("anger", "angry"), "anger", emotion),
+    emotion = if_else(emotion %in% c("confused", "confusion"), "confusion", emotion),
+    emotion = if_else(emotion %in% c("desire", "desire food", "desire sex"), "desire", emotion),
+    emotion = if_else(emotion %in% c("disgust", "disgusted"), "disgust", emotion),
+    emotion = if_else(emotion %in% c("fear", "fearful"), "fear", emotion),
+    emotion = if_else(emotion %in% c("happy", "happiness", "joy"), "happiness", emotion),
+    emotion = if_else(emotion %in% c("sad", "sadness"), "sadness", emotion),
+    emotion = if_else(emotion %in% c("surprise", "surprised"), "surprise", emotion)
+  )
+```
+
+```{r}
+find_missing_aus <- function(proto, scheme, stringify = TRUE) {
+  proto_codes <- pull_numcodes(proto)
+  scheme_codes <- scheme$occurrence
+  missing_aus <- setdiff(proto_codes, scheme_codes)
+  if (stringify) {
+    paste(missing_aus, collapse = ", ")
+  } else {
+    missing_aus
+  }
+}
+
+find_remaining_aus <- function(proto_code, missing_aus) {
+  proto_aus <- tidy(proto_code)[[1]]$occurrence
+  missing_aus <- str_split(missing_aus, ", ")[[1]]
+  remaining_aus <- setdiff(proto_aus, missing_aus)
+  if (length(remaining_aus) > 0) {
+    coding(paste(remaining_aus, collapse = "+"))
+  } else {
+    NA_character_
+  }
+}
+
+protos2 <-
+  protos |> 
+  arrange(emotion, source, config_num) |> 
+  mutate(
+    missing_aus = map_chr(code, \(x) find_missing_aus(x, project_scheme)),
+    remaining_aus = map2_chr(code, missing_aus, \(x, y) find_remaining_aus(x, y))
+  ) |> 
+  filter(!is.na(remaining_aus))
+write_csv(protos2, "proto_summary.csv")
+```
+
+```{r}
+protos2 |> 
+  summarize(
+    .by = remaining_aus,
+    n_emotions = n_distinct(emotion),
+    emotions = str_c(unique(emotion), collapse = ", ")
+  ) |> 
+  arrange(desc(n_emotions), remaining_aus) |> 
+  filter(n_emotions > 1) |> 
+  kbl() |> 
+  kable_styling()
+```
+
+
+```{r}
+plan("multisession", workers = 9)
+occ_counts <- 
+  facs |> 
+  select(-month) |> 
+  mutate(
+    occ = future_map_chr(facs_code, function(x) {
+      codes <- tidy(coding(x))[[1]]$occurrence
+      paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
+    }),
+    occ = na_if(occ, ""),
+    occ = na_if(occ, "NA"),
+    occ = coding(occ)
+  ) |> 
+  nest(.by = c(occ, wave), events = c(subject, event_id, facs_duration, session_duration))
+```
+
+```{r}
+merged <-
+  crossing(
+    occ = coding(sort(unique(c(occ_counts$occ, protos2$code)))), 
+    wave = c(6, 9, 12, 15)
+  ) |> 
+  left_join(
+    y = occ_counts,
+    by = join_by(occ, wave)
+  ) |> 
+  left_join(
+    y = protos2 |> mutate(remaining_aus = coding(remaining_aus)),
+    by = join_by(occ == remaining_aus),
+    relationship = "many-to-many"
+  )
+```
+
+```{r}
+proto_waves <- 
+  merged |> 
+  drop_na(emotion) |> 
+  summarize(
+    .by = c(emotion, wave),
+    all_events = list(bind_rows(events)),
+    n_protos_total = n(),
+    n_protos_occur = sum(map_lgl(events, \(x) !is.null(x))),
+    n_subjects = map_int(
+      all_events, 
+      \(x) ifelse(nrow(x) > 0, length(unique(x$subject)), 0)
+    ),
+    n_events = map_int(
+      all_events,
+      \(x) ifelse(nrow(x) > 0, length(unique(x$event_id)), 0)
+    ),
+    total_sec = map_dbl(
+      all_events,
+      \(x) ifelse(nrow(x) > 0, sum(distinct(x)$facs_duration), 0)
+    ),
+    total_pct = total_sec / sum(info$session_duration),
+    total_pct_str = sprintf("%.3f%%", total_pct * 100)
+  ) |> 
+  arrange(emotion, wave)
+kbl(
+  proto_waves |> 
+    select(-all_events) |> 
+    mutate(emotion = str_to_title(emotion)), 
+  digits = c(0, 0, 0, 0, 0, 0, 1, 4)
+) |> 
+  kable_styling()
+```
+
+```{r}
+proto_waves |> 
+  mutate(
+    Window = factor(
+      wave, 
+      levels = c(6, 9, 12, 15), 
+      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
+    ),
+    Emotion = str_to_title(emotion)
+  ) |> 
+  ggplot(aes(x = Window, y = total_pct, color = Emotion, shape = Emotion, group = Emotion)) +
+  geom_line() + 
+  geom_point(size = 2.5) +
+  scale_x_discrete() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(values = scales::hue_pal()(21)) +
+  scale_shape_manual(values = rep(c(21, 22, 24), length.out = 21)) +
+  guides(color = guide_legend(ncol = 2), shape = guide_legend(ncol = 2)) +
+  labs(x = "Age Window", y = "Percentage of Video Frames", 
+       color = "Emotion Category", shape = "Emotion Category") +
+  theme_bw(base_size = 9)
+ggsave("pct_window_emotion.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+```
+
+```{r}
+proto_waves |> 
+  filter(.by = emotion, max(total_pct) > 0) |> 
+  mutate(
+    Window = factor(
+      wave, 
+      levels = c(6, 9, 12, 15), 
+      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
+    ),
+    Emotion = str_to_title(emotion)
+  ) |> 
+  ggplot(aes(x = Emotion, y = total_pct, fill = Window)) +
+  geom_col(color = "black", linewidth = 1/4, position = position_dodge()) + 
+  scale_x_discrete() +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_brewer(palette = "Set2") +
+  labs(x = "Emotion Category", y = "Percentage of Video Frames", fill = "Age Window") +
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    axis.text.x = element_text(angle = 30, hjust = 1)
+  )
+```
+
+```{r}
+proto_waves |> 
+  mutate(
+    Window = factor(
+      wave, 
+      levels = c(6, 9, 12, 15), 
+      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
+    ),
+    Emotion = fct_rev(factor(str_to_title(emotion)))
+  ) |> 
+  filter(total_pct > 0) |> 
+  ggplot(aes(x = total_pct, y = Emotion, color = Window, fill = Window, shape = Window, group = Emotion)) +
+  geom_line() + 
+  geom_point(size = 2.5) +
+  scale_y_discrete(drop = FALSE) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_color_brewer(palette = "Set2") +
+  scale_fill_brewer(palette = "Set2") +
+  scale_shape_manual(values = c(21, 22, 23, 24)) +
+  labs(
+    x = "Percentage of Video Frames", 
+    y = "Emotion Category",
+    color = "Age Window",
+    shape = "Age Window",
+    fill = "Age Window"
+  ) +
+  theme_bw(base_size = 9)
+ggsave("emotion_pct_window.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+```
+
+```{r}
+proto_waves |> 
+  summarize(.by = emotion, total_pct = mean(total_pct)) |> 
+  mutate(Emotion = fct_rev(factor(str_to_title(emotion)))) |> 
+  ggplot(aes(x = total_pct, y = Emotion)) +
+  geom_col() +
+  scale_y_discrete(drop = FALSE) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(
+    x = "Percentage of Video Frames", 
+    y = "Emotion Category",
+  ) +
+  theme_bw(base_size = 9)
+ggsave("emotion_pct.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+```
+
+```{r}
+total_pcts <- 
+  proto_waves |> 
+  summarize(.by = emotion, total_pct = mean(total_pct))
+top_n(total_pcts, n = 5, wt = total_pct) |> arrange(desc(total_pct))
+top_n(total_pcts, n = 5, wt = -total_pct) |> arrange(total_pct)
+```
+
