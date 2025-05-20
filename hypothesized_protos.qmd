@@ -1,7 +1,7 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2025-05-19"
+date: "2025-05-20"
 format: 
   html:
     page-layout: full
@@ -18,6 +18,8 @@ library(tidyverse)
 library(furrr)
 library(kableExtra)
 library(facs) # remotes::install_github("jmgirard/facs")
+library(brms)
+library(easystats)
 
 info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
 
@@ -80,7 +82,7 @@ protos2 <-
     remaining_aus = map2_chr(code, missing_aus, \(x, y) find_remaining_aus(x, y))
   ) |> 
   filter(!is.na(remaining_aus))
-write_csv(protos2, "proto_summary.csv")
+write_csv(protos2, "proto_summary.csv", na = "")
 ```
 
 ```{r}
@@ -110,18 +112,20 @@ occ_counts <-
     occ = na_if(occ, ""),
     occ = na_if(occ, "NA"),
     occ = coding(occ)
-  ) |> 
+  )
+occ_counts_nested <- 
+  occ_counts |> 
   nest(.by = c(occ, wave), events = c(subject, event_id, facs_duration, session_duration))
 ```
 
 ```{r}
 merged <-
   crossing(
-    occ = coding(sort(unique(c(occ_counts$occ, protos2$code)))), 
+    occ = coding(sort(unique(c(occ_counts_nested$occ, protos2$code)))), 
     wave = c(6, 9, 12, 15)
   ) |> 
   left_join(
-    y = occ_counts,
+    y = occ_counts_nested,
     by = join_by(occ, wave)
   ) |> 
   left_join(
@@ -263,7 +267,192 @@ ggsave("emotion_pct.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 total_pcts <- 
   proto_waves |> 
   summarize(.by = emotion, total_pct = mean(total_pct))
-top_n(total_pcts, n = 5, wt = total_pct) |> arrange(desc(total_pct))
-top_n(total_pcts, n = 5, wt = -total_pct) |> arrange(total_pct)
+top_n(total_pcts, n = 6, wt = total_pct) |> arrange(desc(total_pct))
+top_n(total_pcts, n = 6, wt = -total_pct) |> arrange(total_pct)
+```
+
+## Modeling
+
+```{r}
+occ_counts_long <- 
+  occ_counts |> 
+  summarize(
+    .by = c(subject, wave, occ),
+    occ_duration = sum(facs_duration),
+    session_duration = first(session_duration)
+  )
+```
+
+
+```{r}
+merged2 <-
+  crossing(
+    occ = coding(sort(unique(c(occ_counts_long$occ, protos2$code)))), 
+    wave = c(6, 9, 12, 15)
+  ) |> 
+  left_join(
+    y = occ_counts_long,
+    by = join_by(occ, wave)
+  ) |> 
+  left_join(
+    y = protos2 |> mutate(remaining_aus = coding(remaining_aus)),
+    by = join_by(occ == remaining_aus),
+    relationship = "many-to-many"
+  ) |> 
+  print()
+```
+
+```{r}
+emotion_long <- 
+  merged2 |> 
+  filter(!is.na(emotion), !is.na(subject)) |> 
+  summarize(
+    .by = c(subject, wave, emotion),
+    occ_duration = sum(occ_duration)
+  ) |> 
+  complete(subject, wave, emotion, fill = list(occ_duration = 0)) |> 
+  arrange(subject, wave, emotion) |> 
+  left_join(
+    y = info |> select(subject, wave, session_duration),
+    by = join_by(subject, wave)
+  ) |> 
+  mutate(pct_total = occ_duration / session_duration) |> 
+  mutate(.by = emotion, m_pct = mean(pct_total, na.rm = TRUE)) |> 
+  filter(m_pct >= 0.0003) |> 
+  print()
+```
+
+```{r}
+describe_distribution(emotion_long, select = "pct_total") |> print_md()
+ggplot(emotion_long, aes(x = pct_total)) +
+  facet_wrap(~emotion, scales = "free") +
+  geom_histogram(na.rm = TRUE, color = "white") +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Percent of Video Frames with Prototype", y = "Video Count")
+```
+
+```{r}
+emotion_wide <- 
+  emotion_long |> 
+  pivot_wider(
+    names_from = emotion,
+    values_from = pct_total,
+    id_cols = c(subject, wave)
+  ) |> 
+  mutate(.after = wave, window = as.integer(factor(wave)) - 1) |> 
+  print()
+```
+
+
+```{r}
+happy_null <- brm(
+  formula = happiness ~ 1 + (1 | subject),
+  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
+  data = emotion_wide,
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  file = "happy_null",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+variance_decomposition(happy_null)
+```
+
+```{r}
+happy_linear <- brm(
+  formula = bf(
+    happiness ~ 1 + window + (1 + window | subject),
+    zi ~ 1 + window + (1 + window | subject)
+  ),
+  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
+  data = emotion_wide,
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  file = "happy_linear",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+model_parameters(happy_linear, effects = "all")
+```
+
+```{r}
+pp_check(happy_linear, ndraws = 50)
+```
+
+```{r}
+mv_linear <- brm(
+  formula = bf(
+    mvbind(contentment, fear, happiness, interest, sadness, surprise) ~ 1 + window + (1 + window | subject),
+    zi ~ 1 + window + (1 + window | subject)
+  ),
+  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
+  data = emotion_wide,
+  iter = 10000,
+  warmup = 9000,
+  chains = 3,
+  cores = 3,
+  refresh = 0,
+  init = 0,
+  file = "mv_linear",
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = "cmdstanr",
+  threads = threading(3)
+)
+```
+
+```{r}
+#| warning: false
+
+res_long <- 
+  describe_posterior(mv_linear, component = "all", parameters = "window") |> 
+  as_tibble() |> 
+  transmute(
+    Emotion = str_remove(Parameter, "b_"),
+    Emotion = str_remove(Emotion, "zi_"),
+    Emotion = str_remove(Emotion, "_window"),
+    Component,
+    Est = Median,
+    CL = CI_low,
+    CU = CI_high,
+    pval = 1 - pd
+  )
+res_long |> 
+  kbl(digits = c(0, 0, 2, 2, 2, 3)) |> 
+  kable_styling()
+```
+
+```{r}
+res_long |> 
+  transmute(
+    Emotion, 
+    Component,
+    plab = ifelse(pval < .001, "p<.001", str_glue("p={sprintf('%.3f', pval)}")),
+    plab = str_replace(plab, "=0\\.", "=\\."),
+    Result = sprintf("%.2f (%s)", exp(Est), plab)
+  ) |> 
+  select(-plab) |> 
+  pivot_wider(names_from = Component, values_from = Result) |> 
+  rename(OR_Conditional = conditional, OR_ZeroInflated = zero_inflated) |> 
+  kbl() |> 
+  kable_styling()
+```
+
+```{r}
+walk(
+  c("contentment", "fear", "happiness", "interest", "sadness", "surprise"),
+  \(x) {
+    cat('# ', x, "\n")
+    print(pp_check(mv_linear, ndraws = 50, resp = x))
+    cat("\n")
+  }
+)
 ```
 
