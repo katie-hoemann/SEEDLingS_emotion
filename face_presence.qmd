@@ -1,7 +1,7 @@
 ---
 title: "Face Presence Analysis"
 author: "Jeffrey Girard"
-date: "2025-05-19"
+date: "2025-05-20"
 format: 
   html:
     embed-resources: true
@@ -44,7 +44,7 @@ df_part <-
   arrange(subject, wave) |> 
   mutate(
     .by = subject,
-    window = row_number()
+    window = row_number() - 1
   ) |> 
   complete(subject, window)
 ```
@@ -116,7 +116,7 @@ plot(
   conditional_effects(
     part_linear, 
     effects = "window", 
-    int_conditions = list(window = c(1, 2, 3, 4))
+    int_conditions = list(window = 0:3)
   ), 
   plot = FALSE
 )[[1]] +
@@ -126,7 +126,7 @@ plot(
     limits = c(0.25, 0.40)
   ) +
   scale_x_continuous(
-    breaks = 1:4,
+    breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Partial Face") +
@@ -172,7 +172,7 @@ plot(
   conditional_effects(
     part_monotonic, 
     effects = "window", 
-    int_conditions = list(window = c(1, 2, 3, 4))
+    int_conditions = list(window = 0:3)
   ), 
   plot = FALSE
 )[[1]] +
@@ -182,7 +182,7 @@ plot(
     limits = c(0.25, 0.40)
   ) +
   scale_x_continuous(
-    breaks = 1:4,
+    breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Partial Face") +
@@ -277,17 +277,17 @@ plot(
   conditional_effects(
     full_linear, 
     effects = "window", 
-    int_conditions = list(window = c(1, 2, 3, 4))
+    int_conditions = list(window = 0:3)
   ), 
   plot = FALSE
 )[[1]] +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
-    limits = c(0.025, 0.060)
+    limits = c(0.02, 0.055)
   ) +
   scale_x_continuous(
-    breaks = 1:4,
+    breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Full Face") +
@@ -336,7 +336,7 @@ plot(conditional_effects(full_monotonic, effects = "window"), plot = FALSE)[[1]]
     limits = c(0.025, 0.060)
   ) +
   scale_x_continuous(
-    breaks = 1:4,
+    breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Full Face") +
