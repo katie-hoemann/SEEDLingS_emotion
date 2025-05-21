@@ -1,7 +1,7 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2025-05-20"
+date: "2025-05-21"
 format: 
   html:
     page-layout: full
@@ -10,6 +10,8 @@ format:
     fig-dpi: 300
 embed-resources: true
 ---
+
+## Setup
 
 ```{r setup}
 #| message: false
@@ -85,6 +87,8 @@ protos2 <-
 write_csv(protos2, "proto_summary.csv", na = "")
 ```
 
+## Find Duplicated Prototypes
+
 ```{r}
 protos2 |> 
   summarize(
@@ -98,6 +102,7 @@ protos2 |>
   kable_styling()
 ```
 
+## Count Prototypes
 
 ```{r}
 plan("multisession", workers = 9)
@@ -250,7 +255,7 @@ ggsave("emotion_pct_window.png", width = 6.5, height = 4.0, units = "in", dpi = 
 ```{r}
 proto_waves |> 
   summarize(.by = emotion, total_pct = mean(total_pct)) |> 
-  mutate(Emotion = fct_rev(factor(str_to_title(emotion)))) |> 
+  mutate(Emotion = fct_reorder(factor(str_to_title(emotion)), .x = total_pct)) |> 
   ggplot(aes(x = total_pct, y = Emotion)) +
   geom_col() +
   scale_y_discrete(drop = FALSE) +
@@ -264,14 +269,15 @@ ggsave("emotion_pct.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ```{r}
-total_pcts <- 
-  proto_waves |> 
-  summarize(.by = emotion, total_pct = mean(total_pct))
-top_n(total_pcts, n = 6, wt = total_pct) |> arrange(desc(total_pct))
-top_n(total_pcts, n = 6, wt = -total_pct) |> arrange(total_pct)
+proto_waves |> 
+  summarize(.by = emotion, total_sec = sum(total_sec), total_pct = mean(total_pct)) |> 
+  arrange(desc(total_pct)) |> 
+  mutate(total_pct = scales::percent(total_pct, accuracy = 0.001)) |> 
+  kbl() |> 
+  kable_styling()
 ```
 
-## Modeling
+## Model Prototypes
 
 ```{r}
 occ_counts_long <- 
@@ -298,8 +304,7 @@ merged2 <-
     y = protos2 |> mutate(remaining_aus = coding(remaining_aus)),
     by = join_by(occ == remaining_aus),
     relationship = "many-to-many"
-  ) |> 
-  print()
+  )
 ```
 
 ```{r}
@@ -318,17 +323,17 @@ emotion_long <-
   ) |> 
   mutate(pct_total = occ_duration / session_duration) |> 
   mutate(.by = emotion, m_pct = mean(pct_total, na.rm = TRUE)) |> 
-  filter(m_pct >= 0.0003) |> 
-  print()
+  filter(m_pct >= 0.0003)
 ```
 
 ```{r}
 describe_distribution(emotion_long, select = "pct_total") |> print_md()
 ggplot(emotion_long, aes(x = pct_total)) +
   facet_wrap(~emotion, scales = "free") +
-  geom_histogram(na.rm = TRUE, color = "white") +
+  geom_histogram(na.rm = TRUE, color = "white", bins = 30) +
   scale_x_continuous(labels = scales::percent) +
-  labs(x = "Percent of Video Frames with Prototype", y = "Video Count")
+  labs(x = "Percent of Video Frames with Prototype", y = "Video Count") +
+  theme_bw()
 ```
 
 ```{r}
@@ -339,52 +344,7 @@ emotion_wide <-
     values_from = pct_total,
     id_cols = c(subject, wave)
   ) |> 
-  mutate(.after = wave, window = as.integer(factor(wave)) - 1) |> 
-  print()
-```
-
-
-```{r}
-happy_null <- brm(
-  formula = happiness ~ 1 + (1 | subject),
-  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
-  data = emotion_wide,
-  iter = 10000,
-  warmup = 9000,
-  chains = 3,
-  cores = 3,
-  refresh = 0,
-  file = "happy_null",
-  control = list(adapt_delta = 0.99, max_treedepth = 12),
-  backend = "cmdstanr",
-  threads = threading(3)
-)
-variance_decomposition(happy_null)
-```
-
-```{r}
-happy_linear <- brm(
-  formula = bf(
-    happiness ~ 1 + window + (1 + window | subject),
-    zi ~ 1 + window + (1 + window | subject)
-  ),
-  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
-  data = emotion_wide,
-  iter = 10000,
-  warmup = 9000,
-  chains = 3,
-  cores = 3,
-  refresh = 0,
-  file = "happy_linear",
-  control = list(adapt_delta = 0.99, max_treedepth = 12),
-  backend = "cmdstanr",
-  threads = threading(3)
-)
-model_parameters(happy_linear, effects = "all")
-```
-
-```{r}
-pp_check(happy_linear, ndraws = 50)
+  mutate(.after = wave, window = as.integer(factor(wave)) - 1)
 ```
 
 ```{r}
