@@ -1,7 +1,7 @@
 ---
 title: "Emergent Facial Configurations"
 author: "Jeffrey Girard"
-date: "2025-05-12"
+date: "2025-06-20"
 format: 
   html:
     page-layout: full
@@ -35,6 +35,44 @@ project_scheme <- scheme(
   )
 )
 ```
+
+## Observed Configurations
+
+```{r}
+plan("multisession", workers = 9)
+occ_counts <- 
+  facs |> 
+  select(-month) |> 
+  mutate(
+    occ = future_map_chr(facs_code, function(x) {
+      codes <- tidy(coding(x))[[1]]$occurrence
+      paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
+    }),
+    occ = na_if(occ, ""),
+    occ = na_if(occ, "NA"),
+    occ = coding(occ)
+  )
+```
+
+```{r}
+occ_counts |> 
+  summarize(
+    .by = occ,
+    n_subjects = n_distinct(subject),
+    n_events = n(),
+    duration = sum(facs_duration),
+    fullface_pct = duration / 19315.03
+  ) |> 
+  mutate(n_aus = str_count(occ, "\\+") + 1, .after = occ) |> 
+  arrange(desc(duration)) |> 
+  filter(fullface_pct >= 0.001) |> 
+  mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
+  kbl(digits = c(0, 0, 0, 0, 1, 0)) |> 
+  kable_styling() |>
+  scroll_box(height = "500px")
+```
+
+## Preprocessing for Mixture Modeling
 
 ```{r}
 plan("multisession", workers = 9)
@@ -115,7 +153,7 @@ facs_inc <-
 ## Mixture Modeling
 
 ```{r step}
-outfile <- "sfm_1-10_r5.rds"
+outfile <- "sfm_1-10_r100.rds"
 if (file.exists(outfile)) {
   sres <- read_rds(outfile)
 } else {
@@ -125,10 +163,10 @@ if (file.exists(outfile)) {
       data = facs_bin_long |> select(starts_with("AU")),
       model = FLXMCmvbinary(),
       k = 1:10,
-      nrep = 5,
+      nrep = 100,
       unique = TRUE
     )
-  write_rds(sres, "sfm_1-10_r5.rds", compress = "gz")
+  write_rds(sres, "sfm_1-10_r100.rds", compress = "gz")
 }
 
 ures <- unique(sres)
@@ -171,7 +209,7 @@ parameters(fit) |>
     AU = fct_rev(AU),
     ClusterAlpha = factor(
       Cluster, 
-      labels = paste0(LETTERS[1:fit@k], "\n(n=", fit@size, ")")
+      labels = paste0(LETTERS[1:fit@k], " (", round(fit@size / sum(fit@size) * 100, 1), "%)")
     ),
     Prob_label = sprintf("%.2f", Prob),
     Prob_color = ifelse(Prob > .8, "white", "black")
@@ -197,58 +235,11 @@ parameters(fit) |>
     ticks.colour = "black"
   )) +
   labs(
-    x = "Mixture Component", 
+    x = "Mixture Component (and Prevalence)", 
     y = "Facial Action Unit (AU)", 
     fill = "Probability"
   ) +
   theme_bw()
 
 ggsave("four-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
-```
-
-### Three-Cluster Model (Also Quite Good)
-
-```{r}
-fit <- ures@models[[3]]
-parameters(fit) |> 
-  as_tibble(rownames = "AU") |> 
-  pivot_longer(-AU, names_to = "Cluster", values_to = "Prob") |> 
-  mutate(
-    AU = str_remove(AU, "center."),
-    Cluster = str_remove(Cluster, "Comp."),
-    across(AU:Cluster, \(x) factor(parse_number(x))),
-    AU = fct_rev(AU),
-    ClusterAlpha = factor(
-      Cluster, 
-      labels = paste0(LETTERS[1:fit@k], "\n(n=", fit@size, ")")
-    ),
-    Prob_label = sprintf("%.2f", Prob),
-    Prob_color = ifelse(Prob > .8, "white", "black")
-  ) |> 
-  ggplot(aes(
-    x = ClusterAlpha, 
-    y = AU, 
-    fill = Prob, 
-    label = Prob_label
-  )) +
-  geom_tile(color = "grey") +
-  geom_text(aes(color = Prob_color)) +
-  scale_x_discrete(position = "top", expand = c(0, 0)) +
-  scale_y_discrete(expand = c(0, 0)) +
-  scale_color_identity() +
-  scale_fill_gradient(
-    low = "white", 
-    high = "#3182bd", 
-    limits = c(0, 1)
-  ) + 
-  guides(fill = guide_colorbar(
-    frame.colour = "black", 
-    ticks.colour = "black"
-  )) +
-  labs(
-    x = "Mixture Component", 
-    y = "Facial Action Unit (AU)", 
-    fill = "Probability"
-  ) +
-  theme_bw()
 ```

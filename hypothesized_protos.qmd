@@ -1,7 +1,7 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2025-05-21"
+date: "2025-06-20"
 format: 
   html:
     page-layout: full
@@ -270,9 +270,29 @@ ggsave("emotion_pct.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 
 ```{r}
 proto_waves |> 
-  summarize(.by = emotion, total_sec = sum(total_sec), total_pct = mean(total_pct)) |> 
+  summarize(.by = emotion, total_sec = sum(total_sec), total_pct = mean(total_pct)) |>
+  mutate(fullface_pct = total_sec / 19315.03) |>
   arrange(desc(total_pct)) |> 
-  mutate(total_pct = scales::percent(total_pct, accuracy = 0.001)) |> 
+  mutate(
+    total_pct = scales::percent(total_pct, accuracy = 0.001), 
+    fullface_pct = scales::percent(fullface_pct, accuracy = 0.001)
+  ) |> 
+  kbl() |> 
+  kable_styling()
+```
+
+```{r}
+proto_waves |> 
+  summarize(total_sec = sum(total_sec)) |>
+  mutate(
+    total_pct = total_sec / sum(info$session_duration),
+    fullface_pct = total_sec / 19315.03
+  ) |>
+  arrange(desc(total_pct)) |> 
+  mutate(
+    total_pct = scales::percent(total_pct, accuracy = 0.001), 
+    fullface_pct = scales::percent(fullface_pct, accuracy = 0.001)
+  ) |> 
   kbl() |> 
   kable_styling()
 ```
@@ -400,7 +420,7 @@ res_long |>
   ) |> 
   select(-plab) |> 
   pivot_wider(names_from = Component, values_from = Result) |> 
-  rename(OR_Conditional = conditional, OR_ZeroInflated = zero_inflated) |> 
+  rename(OR_Conditional = conditional, OR_ZeroInflated = zi) |> 
   kbl() |> 
   kable_styling()
 ```
