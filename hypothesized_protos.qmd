@@ -1,7 +1,7 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2025-06-20"
+date: "2025-06-27"
 format: 
   html:
     page-layout: full
@@ -192,64 +192,10 @@ proto_waves |>
   scale_color_manual(values = scales::hue_pal()(21)) +
   scale_shape_manual(values = rep(c(21, 22, 24), length.out = 21)) +
   guides(color = guide_legend(ncol = 2), shape = guide_legend(ncol = 2)) +
-  labs(x = "Age Window", y = "Percentage of Video Frames", 
+  labs(x = "Age Window", y = "Percentage of All Video Frames", 
        color = "Emotion Category", shape = "Emotion Category") +
   theme_bw(base_size = 9)
 ggsave("pct_window_emotion.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
-```
-
-```{r}
-proto_waves |> 
-  filter(.by = emotion, max(total_pct) > 0) |> 
-  mutate(
-    Window = factor(
-      wave, 
-      levels = c(6, 9, 12, 15), 
-      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
-    ),
-    Emotion = str_to_title(emotion)
-  ) |> 
-  ggplot(aes(x = Emotion, y = total_pct, fill = Window)) +
-  geom_col(color = "black", linewidth = 1/4, position = position_dodge()) + 
-  scale_x_discrete() +
-  scale_y_continuous(labels = scales::percent) +
-  scale_color_brewer(palette = "Set2") +
-  labs(x = "Emotion Category", y = "Percentage of Video Frames", fill = "Age Window") +
-  theme_bw() +
-  theme(
-    legend.position = "top",
-    axis.text.x = element_text(angle = 30, hjust = 1)
-  )
-```
-
-```{r}
-proto_waves |> 
-  mutate(
-    Window = factor(
-      wave, 
-      levels = c(6, 9, 12, 15), 
-      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
-    ),
-    Emotion = fct_rev(factor(str_to_title(emotion)))
-  ) |> 
-  filter(total_pct > 0) |> 
-  ggplot(aes(x = total_pct, y = Emotion, color = Window, fill = Window, shape = Window, group = Emotion)) +
-  geom_line() + 
-  geom_point(size = 2.5) +
-  scale_y_discrete(drop = FALSE) +
-  scale_x_continuous(labels = scales::percent) +
-  scale_color_brewer(palette = "Set2") +
-  scale_fill_brewer(palette = "Set2") +
-  scale_shape_manual(values = c(21, 22, 23, 24)) +
-  labs(
-    x = "Percentage of Video Frames", 
-    y = "Emotion Category",
-    color = "Age Window",
-    shape = "Age Window",
-    fill = "Age Window"
-  ) +
-  theme_bw(base_size = 9)
-ggsave("emotion_pct_window.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ```{r}
@@ -261,7 +207,7 @@ proto_waves |>
   scale_y_discrete(drop = FALSE) +
   scale_x_continuous(labels = scales::percent) +
   labs(
-    x = "Percentage of Video Frames", 
+    x = "Percentage of All Video Frames", 
     y = "Emotion Category",
   ) +
   theme_bw(base_size = 9)

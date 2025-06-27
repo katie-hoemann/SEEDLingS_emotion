@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeffrey Girard">
-<meta name="dcterms.date" content="2025-06-20">
+<meta name="dcterms.date" content="2025-06-27">
 
 <title>Emergent Facial Configurations</title>
 <style>
@@ -3330,7 +3330,7 @@ border: 0;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 20, 2025</p>
+      <p class="date">June 27, 2025</p>
     </div>
   </div>
   
@@ -3362,595 +3362,91 @@ border: 0;
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">intensity =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">4</span><span class="sc">:</span><span class="dv">39</span>),</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">asymmetry =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">4</span><span class="sc">:</span><span class="dv">39</span>)</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="observed-configurations" class="level2">
-<h2 class="anchored" data-anchor-id="observed-configurations">Observed Configurations</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="at">workers =</span> <span class="dv">9</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>occ_counts <span class="ot">&lt;-</span> </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  facs <span class="sc">|&gt;</span> </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>month) <span class="sc">|&gt;</span> </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">future_map_chr</span>(facs_code, <span class="cf">function</span>(x) {</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      codes <span class="ot">&lt;-</span> <span class="fu">tidy</span>(<span class="fu">coding</span>(x))[[<span class="dv">1</span>]]<span class="sc">$</span>occurrence</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(codes[codes <span class="sc">%in%</span> project_scheme<span class="sc">$</span>occurrence], <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    }),</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">na_if</span>(occ, <span class="st">&quot;&quot;</span>),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">na_if</span>(occ, <span class="st">&quot;NA&quot;</span>),</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">coding</span>(occ)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>occ_counts <span class="sc">|&gt;</span> </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> occ,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_subjects =</span> <span class="fu">n_distinct</span>(subject),</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_events =</span> <span class="fu">n</span>(),</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">duration =</span> <span class="fu">sum</span>(facs_duration),</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">fullface_pct =</span> duration <span class="sc">/</span> <span class="fl">19315.03</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_aus =</span> <span class="fu">str_count</span>(occ, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">+&quot;</span>) <span class="sc">+</span> <span class="dv">1</span>, <span class="at">.after =</span> occ) <span class="sc">|&gt;</span> </span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(duration)) <span class="sc">|&gt;</span> </span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(fullface_pct <span class="sc">&gt;=</span> <span class="fl">0.001</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fullface_pct =</span> scales<span class="sc">::</span><span class="fu">percent</span>(fullface_pct, <span class="at">accuracy =</span> <span class="fl">0.01</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>() <span class="sc">|&gt;</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scroll_box</span>(<span class="at">height =</span> <span class="st">&quot;500px&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; ">
-<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">occ</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_aus</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_subjects</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_events</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">duration</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">fullface_pct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">12</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">44</td>
-<td style="text-align: right;">1490</td>
-<td style="text-align: right;">988.5</td>
-<td style="text-align: left;">5.12%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">630</td>
-<td style="text-align: right;">390.4</td>
-<td style="text-align: left;">2.02%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">12+25+26</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">44</td>
-<td style="text-align: right;">712</td>
-<td style="text-align: right;">386.9</td>
-<td style="text-align: left;">2.00%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">12+25</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">43</td>
-<td style="text-align: right;">687</td>
-<td style="text-align: right;">360.2</td>
-<td style="text-align: left;">1.86%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">532</td>
-<td style="text-align: right;">302.0</td>
-<td style="text-align: left;">1.56%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+12</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">349</td>
-<td style="text-align: right;">233.1</td>
-<td style="text-align: left;">1.21%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">6+12</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">38</td>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">227.1</td>
-<td style="text-align: left;">1.18%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">6+12+25+26</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">250</td>
-<td style="text-align: right;">183.3</td>
-<td style="text-align: left;">0.95%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">17</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">39</td>
-<td style="text-align: right;">325</td>
-<td style="text-align: right;">139.3</td>
-<td style="text-align: left;">0.72%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">14</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: right;">309</td>
-<td style="text-align: right;">133.8</td>
-<td style="text-align: left;">0.69%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+25</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">36</td>
-<td style="text-align: right;">237</td>
-<td style="text-align: right;">118.4</td>
-<td style="text-align: left;">0.61%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+12+25+26</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">245</td>
-<td style="text-align: right;">112.6</td>
-<td style="text-align: left;">0.58%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">24</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">38</td>
-<td style="text-align: right;">276</td>
-<td style="text-align: right;">107.8</td>
-<td style="text-align: left;">0.56%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+5+12</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">28</td>
-<td style="text-align: right;">132</td>
-<td style="text-align: right;">97.5</td>
-<td style="text-align: left;">0.50%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">6+12+25</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">153</td>
-<td style="text-align: right;">90.9</td>
-<td style="text-align: left;">0.47%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+5</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">140</td>
-<td style="text-align: right;">87.0</td>
-<td style="text-align: left;">0.45%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+25+26</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">36</td>
-<td style="text-align: right;">224</td>
-<td style="text-align: right;">86.0</td>
-<td style="text-align: left;">0.45%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+12</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">116</td>
-<td style="text-align: right;">83.9</td>
-<td style="text-align: left;">0.43%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+23</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">89</td>
-<td style="text-align: right;">73.0</td>
-<td style="text-align: left;">0.38%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">23</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">152</td>
-<td style="text-align: right;">69.1</td>
-<td style="text-align: left;">0.36%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+25</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">159</td>
-<td style="text-align: right;">67.6</td>
-<td style="text-align: left;">0.35%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">15</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">33</td>
-<td style="text-align: right;">131</td>
-<td style="text-align: right;">60.3</td>
-<td style="text-align: left;">0.31%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">14+17</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">106</td>
-<td style="text-align: right;">59.9</td>
-<td style="text-align: left;">0.31%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+12+25</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">99</td>
-<td style="text-align: right;">57.0</td>
-<td style="text-align: left;">0.29%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+12+25</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">55.9</td>
-<td style="text-align: left;">0.29%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+5+12+25+26</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">28</td>
-<td style="text-align: right;">101</td>
-<td style="text-align: right;">53.1</td>
-<td style="text-align: left;">0.27%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">18+25</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">147</td>
-<td style="text-align: right;">52.1</td>
-<td style="text-align: left;">0.27%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">12+17</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">88</td>
-<td style="text-align: right;">50.0</td>
-<td style="text-align: left;">0.26%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">18</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">34</td>
-<td style="text-align: right;">154</td>
-<td style="text-align: right;">48.9</td>
-<td style="text-align: left;">0.25%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+24</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">97</td>
-<td style="text-align: right;">48.7</td>
-<td style="text-align: left;">0.25%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">17+24</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">34</td>
-<td style="text-align: right;">110</td>
-<td style="text-align: right;">48.5</td>
-<td style="text-align: left;">0.25%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+12+25+26</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">85</td>
-<td style="text-align: right;">46.8</td>
-<td style="text-align: left;">0.24%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+17</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">95</td>
-<td style="text-align: right;">46.5</td>
-<td style="text-align: left;">0.24%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+14</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">100</td>
-<td style="text-align: right;">45.9</td>
-<td style="text-align: left;">0.24%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+25+26</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">95</td>
-<td style="text-align: right;">44.1</td>
-<td style="text-align: left;">0.23%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">20</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">128</td>
-<td style="text-align: right;">43.2</td>
-<td style="text-align: left;">0.22%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">20+25</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">114</td>
-<td style="text-align: right;">42.5</td>
-<td style="text-align: left;">0.22%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">87</td>
-<td style="text-align: right;">40.6</td>
-<td style="text-align: left;">0.21%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+5+25+26</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">26</td>
-<td style="text-align: right;">77</td>
-<td style="text-align: right;">39.5</td>
-<td style="text-align: left;">0.20%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">17+23</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">91</td>
-<td style="text-align: right;">38.6</td>
-<td style="text-align: left;">0.20%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">5</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">91</td>
-<td style="text-align: right;">36.7</td>
-<td style="text-align: left;">0.19%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+15</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">22</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">35.1</td>
-<td style="text-align: left;">0.18%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">5+12</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">44</td>
-<td style="text-align: right;">28.8</td>
-<td style="text-align: left;">0.15%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+4</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">21</td>
-<td style="text-align: right;">47</td>
-<td style="text-align: right;">25.9</td>
-<td style="text-align: left;">0.13%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">19+25+26</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">71</td>
-<td style="text-align: right;">25.2</td>
-<td style="text-align: left;">0.13%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">7</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">25.2</td>
-<td style="text-align: left;">0.13%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+20</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">24.6</td>
-<td style="text-align: left;">0.13%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+18+25</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">67</td>
-<td style="text-align: right;">24.5</td>
-<td style="text-align: left;">0.13%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+20+25</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">26</td>
-<td style="text-align: right;">70</td>
-<td style="text-align: right;">23.8</td>
-<td style="text-align: left;">0.12%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">9+12+25+26</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">34</td>
-<td style="text-align: right;">23.0</td>
-<td style="text-align: left;">0.12%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">4+14+17</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: right;">21.6</td>
-<td style="text-align: left;">0.11%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+2+18+25</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">66</td>
-<td style="text-align: right;">21.3</td>
-<td style="text-align: left;">0.11%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+20+25</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">22</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">21.3</td>
-<td style="text-align: left;">0.11%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">1+25</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">21</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">21.1</td>
-<td style="text-align: left;">0.11%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">6</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">20.1</td>
-<td style="text-align: left;">0.10%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+12+17</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">19.7</td>
-<td style="text-align: left;">0.10%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1+2+17</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">57</td>
-<td style="text-align: right;">19.7</td>
-<td style="text-align: left;">0.10%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">4+17+23</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">19.4</td>
-<td style="text-align: left;">0.10%</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-</div>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>protos <span class="ot">&lt;-</span> </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  prototypes <span class="sc">|&gt;</span> </span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(emotion_type) <span class="sc">|</span> emotion_type <span class="sc">!=</span> <span class="st">&quot;compound&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;anger&quot;</span>, <span class="st">&quot;angry&quot;</span>), <span class="st">&quot;anger&quot;</span>, emotion),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;confused&quot;</span>, <span class="st">&quot;confusion&quot;</span>), <span class="st">&quot;confusion&quot;</span>, emotion),</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;desire&quot;</span>, <span class="st">&quot;desire food&quot;</span>, <span class="st">&quot;desire sex&quot;</span>), <span class="st">&quot;desire&quot;</span>, emotion),</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;disgust&quot;</span>, <span class="st">&quot;disgusted&quot;</span>), <span class="st">&quot;disgust&quot;</span>, emotion),</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;fear&quot;</span>, <span class="st">&quot;fearful&quot;</span>), <span class="st">&quot;fear&quot;</span>, emotion),</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;happy&quot;</span>, <span class="st">&quot;happiness&quot;</span>, <span class="st">&quot;joy&quot;</span>), <span class="st">&quot;happiness&quot;</span>, emotion),</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;sad&quot;</span>, <span class="st">&quot;sadness&quot;</span>), <span class="st">&quot;sadness&quot;</span>, emotion),</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">emotion =</span> <span class="fu">if_else</span>(emotion <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;surprise&quot;</span>, <span class="st">&quot;surprised&quot;</span>), <span class="st">&quot;surprise&quot;</span>, emotion)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="preprocessing-for-mixture-modeling" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessing-for-mixture-modeling">Preprocessing for Mixture Modeling</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="at">workers =</span> <span class="dv">9</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>bin_events <span class="ot">&lt;-</span> <span class="cf">function</span>(df, bin_size) {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Determine the range of bins</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  start_time <span class="ot">&lt;-</span> <span class="fu">min</span>(df<span class="sc">$</span>session_onset)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  end_time <span class="ot">&lt;-</span> <span class="fu">max</span>(df<span class="sc">$</span>session_offset)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  bins <span class="ot">&lt;-</span> <span class="fu">seq</span>(start_time, end_time, <span class="at">by =</span> bin_size)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Initialize output data frame</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">bin_onset =</span> bins[<span class="sc">-</span><span class="fu">length</span>(bins)],</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">bin_offset =</span> bins[<span class="sc">-</span><span class="dv">1</span>]</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add columns for each possible number</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (num <span class="cf">in</span> project_scheme<span class="sc">$</span>occurrence) {</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    output[[<span class="fu">paste0</span>(<span class="st">&quot;AU&quot;</span>, num)]] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Iterate through each bin and mark numbers present in overlapping events</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(output))) {</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    bin_start <span class="ot">&lt;-</span> output<span class="sc">$</span>bin_onset[i]</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    bin_end <span class="ot">&lt;-</span> output<span class="sc">$</span>bin_offset[i]</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Identify events overlapping this bin</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    overlapping_events <span class="ot">&lt;-</span> df[df<span class="sc">$</span>facs_onset <span class="sc">&lt;</span> bin_end <span class="sc">&amp;</span> df<span class="sc">$</span>facs_offset <span class="sc">&gt;</span> bin_start, ]</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mark numbers for this bin</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (event_label <span class="cf">in</span> overlapping_events<span class="sc">$</span>facs_code) {</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>      numbers_in_event <span class="ot">&lt;-</span> <span class="fu">pull_numcodes</span>(event_label)</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>      output[i, <span class="fu">paste0</span>(<span class="st">&quot;AU&quot;</span>, numbers_in_event)] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(output)</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="at">workers =</span> <span class="dv">9</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>bin_events <span class="ot">&lt;-</span> <span class="cf">function</span>(df, bin_size) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Determine the range of bins</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  start_time <span class="ot">&lt;-</span> <span class="fu">min</span>(df<span class="sc">$</span>session_onset)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  end_time <span class="ot">&lt;-</span> <span class="fu">max</span>(df<span class="sc">$</span>session_offset)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  bins <span class="ot">&lt;-</span> <span class="fu">seq</span>(start_time, end_time, <span class="at">by =</span> bin_size)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Initialize output data frame</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">bin_onset =</span> bins[<span class="sc">-</span><span class="fu">length</span>(bins)],</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">bin_offset =</span> bins[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add columns for each possible number</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (num <span class="cf">in</span> project_scheme<span class="sc">$</span>occurrence) {</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    output[[<span class="fu">paste0</span>(<span class="st">&quot;AU&quot;</span>, num)]] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Iterate through each bin and mark numbers present in overlapping events</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(output))) {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    bin_start <span class="ot">&lt;-</span> output<span class="sc">$</span>bin_onset[i]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    bin_end <span class="ot">&lt;-</span> output<span class="sc">$</span>bin_offset[i]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Identify events overlapping this bin</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    overlapping_events <span class="ot">&lt;-</span> df[df<span class="sc">$</span>facs_onset <span class="sc">&lt;</span> bin_end <span class="sc">&amp;</span> df<span class="sc">$</span>facs_offset <span class="sc">&gt;</span> bin_start, ]</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mark numbers for this bin</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (event_label <span class="cf">in</span> overlapping_events<span class="sc">$</span>facs_code) {</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>      numbers_in_event <span class="ot">&lt;-</span> <span class="fu">pull_numcodes</span>(event_label)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>      output[i, <span class="fu">paste0</span>(<span class="st">&quot;AU&quot;</span>, numbers_in_event)] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(output)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>facs_bin <span class="ot">&lt;-</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  facs <span class="sc">|&gt;</span> </span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">.by =</span> <span class="fu">c</span>(subject, wave, month)) <span class="sc">|&gt;</span> </span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">binned =</span> <span class="fu">future_map</span>(</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>      data, </span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      \(x) x <span class="sc">|&gt;</span> </span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bin_events</span>(<span class="at">bin_size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(<span class="fu">rowSums</span>(<span class="fu">pick</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>))) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>facs_bin <span class="ot">&lt;-</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  facs <span class="sc">|&gt;</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">.by =</span> <span class="fu">c</span>(subject, wave, month)) <span class="sc">|&gt;</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">binned =</span> <span class="fu">future_map</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      data, </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      \(x) x <span class="sc">|&gt;</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bin_events</span>(<span class="at">bin_size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(<span class="fu">rowSums</span>(<span class="fu">pick</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>))) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>facs_bin_long <span class="ot">&lt;-</span> </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  facs_bin <span class="sc">|&gt;</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data) <span class="sc">|&gt;</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(binned)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>facs_bin_prev <span class="ot">&lt;-</span> </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  facs_bin_long <span class="sc">|&gt;</span> </span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>), mean)) <span class="sc">|&gt;</span> </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">&quot;AU&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Occurrence&quot;</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>facs_bin_prev <span class="sc">|&gt;</span> </span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(Occurrence) <span class="sc">|&gt;</span> </span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Occurrence)) <span class="sc">|&gt;</span> </span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>facs_bin_long <span class="ot">&lt;-</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  facs_bin <span class="sc">|&gt;</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data) <span class="sc">|&gt;</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(binned)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>facs_bin_prev <span class="ot">&lt;-</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  facs_bin_long <span class="sc">|&gt;</span> </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>), mean)) <span class="sc">|&gt;</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">&quot;AU&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Occurrence&quot;</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>facs_bin_prev <span class="sc">|&gt;</span> </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(Occurrence) <span class="sc">|&gt;</span> </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Occurrence)) <span class="sc">|&gt;</span> </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
@@ -4117,11 +3613,11 @@ border: 0;
 
 
 </div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>facs_inc <span class="ot">&lt;-</span> </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  facs_bin_prev <span class="sc">|&gt;</span> </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Occurrence <span class="sc">&gt;=</span> <span class="fl">0.01</span>, AU <span class="sc">!=</span> <span class="st">&quot;AU50&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(AU) <span class="sc">|&gt;</span> </span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>facs_inc <span class="ot">&lt;-</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  facs_bin_prev <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Occurrence <span class="sc">&gt;=</span> <span class="fl">0.01</span>, AU <span class="sc">!=</span> <span class="st">&quot;AU50&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(AU) <span class="sc">|&gt;</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] &quot;AU1&quot;  &quot;AU2&quot;  &quot;AU4&quot;  &quot;AU5&quot;  &quot;AU6&quot;  &quot;AU7&quot;  &quot;AU9&quot;  &quot;AU10&quot; &quot;AU12&quot; &quot;AU17&quot;
 [11] &quot;AU18&quot; &quot;AU20&quot; &quot;AU22&quot; &quot;AU25&quot; &quot;AU26&quot;</code></pre>
@@ -4131,32 +3627,32 @@ border: 0;
 <section id="mixture-modeling" class="level2">
 <h2 class="anchored" data-anchor-id="mixture-modeling">Mixture Modeling</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>outfile <span class="ot">&lt;-</span> <span class="st">&quot;sfm_1-10_r100.rds&quot;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(outfile)) {</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  sres <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(outfile)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  sres <span class="ot">&lt;-</span> </span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stepFlexmix</span>(</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;cbind(&quot;</span>, <span class="fu">paste</span>(facs_inc, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;) ~ 1&quot;</span>)),</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> facs_bin_long <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>)),</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">model =</span> <span class="fu">FLXMCmvbinary</span>(),</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">k =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">nrep =</span> <span class="dv">100</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">unique =</span> <span class="cn">TRUE</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_rds</span>(sres, <span class="st">&quot;sfm_1-10_r100.rds&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;gz&quot;</span>)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>ures <span class="ot">&lt;-</span> <span class="fu">unique</span>(sres)</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>ures_perf <span class="ot">&lt;-</span> </span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">k =</span> ures<span class="sc">@</span>k,</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">AIC =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, AIC),</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">BIC =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, BIC),</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">ICL =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, ICL)</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="fu">kbl</span>(ures_perf) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>outfile <span class="ot">&lt;-</span> <span class="st">&quot;sfm_1-10_r100.rds&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(outfile)) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  sres <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(outfile)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  sres <span class="ot">&lt;-</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stepFlexmix</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">formula =</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">&quot;cbind(&quot;</span>, <span class="fu">paste</span>(facs_inc, <span class="at">collapse =</span> <span class="st">&quot;, &quot;</span>), <span class="st">&quot;) ~ 1&quot;</span>)),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> facs_bin_long <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">&quot;AU&quot;</span>)),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">model =</span> <span class="fu">FLXMCmvbinary</span>(),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">k =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">nrep =</span> <span class="dv">100</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">unique =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_rds</span>(sres, <span class="st">&quot;sfm_1-10_r100.rds&quot;</span>, <span class="at">compress =</span> <span class="st">&quot;gz&quot;</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>ures <span class="ot">&lt;-</span> <span class="fu">unique</span>(sres)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>ures_perf <span class="ot">&lt;-</span> </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">k =</span> ures<span class="sc">@</span>k,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">AIC =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, AIC),</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">BIC =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, BIC),</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">ICL =</span> <span class="fu">map_dbl</span>(ures<span class="sc">@</span>models, ICL)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="fu">kbl</span>(ures_perf) <span class="sc">|&gt;</span> <span class="fu">kable_styling</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
@@ -4203,19 +3699,19 @@ border: 0;
 
 
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ures_perf <span class="sc">|&gt;</span> </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>k, <span class="at">names_to =</span> <span class="st">&quot;stat&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;value&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> k, <span class="at">y =</span> value, <span class="at">color =</span> stat, <span class="at">shape =</span> stat)) <span class="sc">+</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Number of Mixture Components&quot;</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Performance (lower is better)&quot;</span>,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;Metric&quot;</span>,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">shape =</span> <span class="st">&quot;Metric&quot;</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ures_perf <span class="sc">|&gt;</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>k, <span class="at">names_to =</span> <span class="st">&quot;stat&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;value&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> k, <span class="at">y =</span> value, <span class="at">color =</span> stat, <span class="at">shape =</span> stat)) <span class="sc">+</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Number of Mixture Components&quot;</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Performance (lower is better)&quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;Metric&quot;</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">shape =</span> <span class="st">&quot;Metric&quot;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -4227,48 +3723,48 @@ border: 0;
 <section id="four-cluster-model-favored-by-icl" class="level3">
 <h3 class="anchored" data-anchor-id="four-cluster-model-favored-by-icl">Four-Cluster Model (Favored by ICL)</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> ures<span class="sc">@</span>models[[<span class="dv">4</span>]]</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">parameters</span>(fit) <span class="sc">|&gt;</span> </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">&quot;AU&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>AU, <span class="at">names_to =</span> <span class="st">&quot;Cluster&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Prob&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">AU =</span> <span class="fu">str_remove</span>(AU, <span class="st">&quot;center.&quot;</span>),</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cluster =</span> <span class="fu">str_remove</span>(Cluster, <span class="st">&quot;Comp.&quot;</span>),</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(AU<span class="sc">:</span>Cluster, \(x) <span class="fu">factor</span>(<span class="fu">parse_number</span>(x))),</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">AU =</span> <span class="fu">fct_rev</span>(AU),</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ClusterAlpha =</span> <span class="fu">factor</span>(</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      Cluster, </span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">paste0</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span>fit<span class="sc">@</span>k], <span class="st">&quot; (&quot;</span>, <span class="fu">round</span>(fit<span class="sc">@</span>size <span class="sc">/</span> <span class="fu">sum</span>(fit<span class="sc">@</span>size) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>), <span class="st">&quot;%)&quot;</span>)</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Prob_label =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f&quot;</span>, Prob),</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Prob_color =</span> <span class="fu">ifelse</span>(Prob <span class="sc">&gt;</span> .<span class="dv">8</span>, <span class="st">&quot;white&quot;</span>, <span class="st">&quot;black&quot;</span>)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> ClusterAlpha, </span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> AU, </span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> Prob, </span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> Prob_label</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="sc">+</span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">color =</span> Prob_color)) <span class="sc">+</span></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">&quot;top&quot;</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_identity</span>() <span class="sc">+</span></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">&quot;white&quot;</span>, </span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">&quot;#3182bd&quot;</span>, </span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_colorbar</span>(</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">frame.colour =</span> <span class="st">&quot;black&quot;</span>, </span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">ticks.colour =</span> <span class="st">&quot;black&quot;</span></span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Mixture Component (and Prevalence)&quot;</span>, </span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Facial Action Unit (AU)&quot;</span>, </span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;Probability&quot;</span></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> ures<span class="sc">@</span>models[[<span class="dv">4</span>]]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">parameters</span>(fit) <span class="sc">|&gt;</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">&quot;AU&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>AU, <span class="at">names_to =</span> <span class="st">&quot;Cluster&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Prob&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">AU =</span> <span class="fu">str_remove</span>(AU, <span class="st">&quot;center.&quot;</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cluster =</span> <span class="fu">str_remove</span>(Cluster, <span class="st">&quot;Comp.&quot;</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(AU<span class="sc">:</span>Cluster, \(x) <span class="fu">factor</span>(<span class="fu">parse_number</span>(x))),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">AU =</span> <span class="fu">fct_rev</span>(AU),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ClusterAlpha =</span> <span class="fu">factor</span>(</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      Cluster, </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">paste0</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span>fit<span class="sc">@</span>k], <span class="st">&quot; (&quot;</span>, <span class="fu">round</span>(fit<span class="sc">@</span>size <span class="sc">/</span> <span class="fu">sum</span>(fit<span class="sc">@</span>size) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>), <span class="st">&quot;%)&quot;</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Prob_label =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f&quot;</span>, Prob),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Prob_color =</span> <span class="fu">ifelse</span>(Prob <span class="sc">&gt;</span> .<span class="dv">8</span>, <span class="st">&quot;white&quot;</span>, <span class="st">&quot;black&quot;</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> ClusterAlpha, </span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> AU, </span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> Prob, </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> Prob_label</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">&quot;grey&quot;</span>) <span class="sc">+</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">color =</span> Prob_color)) <span class="sc">+</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">&quot;top&quot;</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_identity</span>() <span class="sc">+</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">&quot;white&quot;</span>, </span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">&quot;#3182bd&quot;</span>, </span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_colorbar</span>(</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">frame.colour =</span> <span class="st">&quot;black&quot;</span>, </span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">ticks.colour =</span> <span class="st">&quot;black&quot;</span></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Mixture Component (and Prevalence)&quot;</span>, </span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Facial Action Unit (AU)&quot;</span>, </span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;Probability&quot;</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -4276,9 +3772,666 @@ border: 0;
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">&quot;four-cluster.png&quot;</span>, <span class="at">width =</span> <span class="fl">6.5</span>, <span class="at">height =</span> <span class="fl">4.0</span>, <span class="at">units =</span> <span class="st">&quot;in&quot;</span>, <span class="at">dpi =</span> <span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">&quot;four-cluster.png&quot;</span>, <span class="at">width =</span> <span class="fl">6.5</span>, <span class="at">height =</span> <span class="fl">4.0</span>, <span class="at">units =</span> <span class="st">&quot;in&quot;</span>, <span class="at">dpi =</span> <span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+</section>
+<section id="observed-configurations" class="level2">
+<h2 class="anchored" data-anchor-id="observed-configurations">Observed Configurations</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="at">workers =</span> <span class="dv">9</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>occ_counts <span class="ot">&lt;-</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  facs <span class="sc">|&gt;</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>month) <span class="sc">|&gt;</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">future_map_chr</span>(facs_code, <span class="cf">function</span>(x) {</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      codes <span class="ot">&lt;-</span> <span class="fu">tidy</span>(<span class="fu">coding</span>(x))[[<span class="dv">1</span>]]<span class="sc">$</span>occurrence</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">paste</span>(codes[codes <span class="sc">%in%</span> project_scheme<span class="sc">$</span>occurrence], <span class="at">collapse =</span> <span class="st">&quot;+&quot;</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    }),</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">na_if</span>(occ, <span class="st">&quot;&quot;</span>),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">na_if</span>(occ, <span class="st">&quot;NA&quot;</span>),</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">occ =</span> <span class="fu">coding</span>(occ)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>obs_table <span class="ot">&lt;-</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  occ_counts <span class="sc">|&gt;</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">.by =</span> occ,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_subjects =</span> <span class="fu">n_distinct</span>(subject),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_events =</span> <span class="fu">n</span>(),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">duration =</span> <span class="fu">sum</span>(facs_duration),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">fullface_pct =</span> duration <span class="sc">/</span> <span class="fl">19315.03</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n_aus =</span> <span class="fu">str_count</span>(occ, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">+&quot;</span>) <span class="sc">+</span> <span class="dv">1</span>, <span class="at">.after =</span> occ) <span class="sc">|&gt;</span> </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(duration)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(fullface_pct <span class="sc">&gt;=</span> <span class="fl">0.001</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fullface_pct =</span> scales<span class="sc">::</span><span class="fu">percent</span>(fullface_pct, <span class="at">accuracy =</span> <span class="fl">0.01</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">proto =</span> <span class="fu">compare_to_prototypes</span>(</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      occ, </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">scheme =</span> project_scheme, </span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">proto =</span> protos,</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">uncoded =</span> <span class="st">&quot;omit&quot;</span>, </span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">output =</span> <span class="st">&quot;exact&quot;</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">proto =</span> <span class="fu">map_chr</span>(proto, \(x) <span class="fu">str_c</span>(<span class="fu">names</span>(x), <span class="at">collapse =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)),</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">cluster =</span> <span class="fu">map_chr</span>(occ, \(x) {</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>      aus <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;AU&quot;</span>, <span class="fu">tidy</span>(x)[[<span class="dv">1</span>]]<span class="sc">$</span>occurrence)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>      mat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">ncol =</span> <span class="fu">length</span>(facs_inc), <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="dv">1</span>, facs_inc))</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">all</span>(aus <span class="sc">%in%</span> facs_inc)) { <span class="fu">return</span>(<span class="cn">NA_character_</span>) }</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>      mat[<span class="dv">1</span>, aus] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>      cluster <span class="ot">&lt;-</span> <span class="fu">which.max</span>(<span class="fu">posterior</span>(fit, <span class="at">newdata =</span> <span class="fu">as.data.frame</span>(mat)))</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>      LETTERS[cluster]</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>obs_table <span class="sc">|&gt;</span> </span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>() <span class="sc">|&gt;</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scroll_box</span>(<span class="at">height =</span> <span class="st">&quot;500px&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; ">
+<table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">occ</th>
+<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_aus</th>
+<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_subjects</th>
+<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">n_events</th>
+<th data-quarto-table-cell-role="th" style="text-align: right; position: sticky; top: 0; background-color: #FFFFFF;">duration</th>
+<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">fullface_pct</th>
+<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">proto</th>
+<th data-quarto-table-cell-role="th" style="text-align: left; position: sticky; top: 0; background-color: #FFFFFF;">cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">12</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">1490</td>
+<td style="text-align: right;">988.5</td>
+<td style="text-align: left;">5.12%</td>
+<td style="text-align: left;">cordaro2018_contentment_1 fig2002_happiness_2 keltner2019_contentment_1</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">630</td>
+<td style="text-align: right;">390.4</td>
+<td style="text-align: left;">2.02%</td>
+<td style="text-align: left;">cordaro2018_sadness_1</td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">12+25+26</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">712</td>
+<td style="text-align: right;">386.9</td>
+<td style="text-align: left;">2.00%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">12+25</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">687</td>
+<td style="text-align: right;">360.2</td>
+<td style="text-align: left;">1.86%</td>
+<td style="text-align: left;">du2014_happiness_1</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">532</td>
+<td style="text-align: right;">302.0</td>
+<td style="text-align: left;">1.56%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+12</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">349</td>
+<td style="text-align: right;">233.1</td>
+<td style="text-align: left;">1.21%</td>
+<td style="text-align: left;">keltner2019_interest_1</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">6+12</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">227.1</td>
+<td style="text-align: left;">1.18%</td>
+<td style="text-align: left;">fig2002_happiness_1 matsumoto2008_happiness_1 matsumoto2008_happiness_1</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">6+12+25+26</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">250</td>
+<td style="text-align: right;">183.3</td>
+<td style="text-align: left;">0.95%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">17</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">325</td>
+<td style="text-align: right;">139.3</td>
+<td style="text-align: left;">0.72%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">14</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">309</td>
+<td style="text-align: right;">133.8</td>
+<td style="text-align: left;">0.69%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+25</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">237</td>
+<td style="text-align: right;">118.4</td>
+<td style="text-align: left;">0.61%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+12+25+26</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">245</td>
+<td style="text-align: right;">112.6</td>
+<td style="text-align: left;">0.58%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">24</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">276</td>
+<td style="text-align: right;">107.8</td>
+<td style="text-align: left;">0.56%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+5+12</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">132</td>
+<td style="text-align: right;">97.5</td>
+<td style="text-align: left;">0.50%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">6+12+25</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">153</td>
+<td style="text-align: right;">90.9</td>
+<td style="text-align: left;">0.47%</td>
+<td style="text-align: left;">du2014_happiness_2</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+5</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">140</td>
+<td style="text-align: right;">87.0</td>
+<td style="text-align: left;">0.45%</td>
+<td style="text-align: left;">fig2002_surprise_3 fig2002_fear_17</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+25+26</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">224</td>
+<td style="text-align: right;">86.0</td>
+<td style="text-align: left;">0.45%</td>
+<td style="text-align: left;">du2014_surprise_1</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+12</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">116</td>
+<td style="text-align: right;">83.9</td>
+<td style="text-align: left;">0.43%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+23</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">89</td>
+<td style="text-align: right;">73.0</td>
+<td style="text-align: left;">0.38%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">23</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">152</td>
+<td style="text-align: right;">69.1</td>
+<td style="text-align: left;">0.36%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+25</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">159</td>
+<td style="text-align: right;">67.6</td>
+<td style="text-align: left;">0.35%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">15</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">131</td>
+<td style="text-align: right;">60.3</td>
+<td style="text-align: left;">0.31%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">14+17</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">106</td>
+<td style="text-align: right;">59.9</td>
+<td style="text-align: left;">0.31%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+12+25</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">99</td>
+<td style="text-align: right;">57.0</td>
+<td style="text-align: left;">0.29%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+12+25</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">126</td>
+<td style="text-align: right;">55.9</td>
+<td style="text-align: left;">0.29%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+5+12+25+26</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">53.1</td>
+<td style="text-align: left;">0.27%</td>
+<td style="text-align: left;">cordaro2018_awe_1</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">18+25</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">147</td>
+<td style="text-align: right;">52.1</td>
+<td style="text-align: left;">0.27%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">12+17</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">50.0</td>
+<td style="text-align: left;">0.26%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">18</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">154</td>
+<td style="text-align: right;">48.9</td>
+<td style="text-align: left;">0.25%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+24</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">97</td>
+<td style="text-align: right;">48.7</td>
+<td style="text-align: left;">0.25%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">17+24</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">110</td>
+<td style="text-align: right;">48.5</td>
+<td style="text-align: left;">0.25%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+12+25+26</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;">46.8</td>
+<td style="text-align: left;">0.24%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+17</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">95</td>
+<td style="text-align: right;">46.5</td>
+<td style="text-align: left;">0.24%</td>
+<td style="text-align: left;">cordaro2018_shame_1</td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+14</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">45.9</td>
+<td style="text-align: left;">0.24%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+25+26</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">95</td>
+<td style="text-align: right;">44.1</td>
+<td style="text-align: left;">0.23%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">20</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">43.2</td>
+<td style="text-align: left;">0.22%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">20+25</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">42.5</td>
+<td style="text-align: left;">0.22%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">87</td>
+<td style="text-align: right;">40.6</td>
+<td style="text-align: left;">0.21%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+5+25+26</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">77</td>
+<td style="text-align: right;">39.5</td>
+<td style="text-align: left;">0.20%</td>
+<td style="text-align: left;">cordaro2018_surprise_1 du2014_surprise_2 fig2002_fear_21 keltner2019_surprise_1</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">17+23</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">91</td>
+<td style="text-align: right;">38.6</td>
+<td style="text-align: left;">0.20%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">91</td>
+<td style="text-align: right;">36.7</td>
+<td style="text-align: left;">0.19%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+15</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">35.1</td>
+<td style="text-align: left;">0.18%</td>
+<td style="text-align: left;">du2014_sadness_1</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">5+12</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">28.8</td>
+<td style="text-align: left;">0.15%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">25.9</td>
+<td style="text-align: left;">0.13%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">19+25+26</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">71</td>
+<td style="text-align: right;">25.2</td>
+<td style="text-align: left;">0.13%</td>
+<td style="text-align: left;">keltner2019_desire_1</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">7</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">25.2</td>
+<td style="text-align: left;">0.13%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+20</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">24.6</td>
+<td style="text-align: left;">0.13%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+18+25</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">67</td>
+<td style="text-align: right;">24.5</td>
+<td style="text-align: left;">0.13%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+20+25</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">23.8</td>
+<td style="text-align: left;">0.12%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">9+12+25+26</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">23.0</td>
+<td style="text-align: left;">0.12%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">4+14+17</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">21.6</td>
+<td style="text-align: left;">0.11%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+2+18+25</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">66</td>
+<td style="text-align: right;">21.3</td>
+<td style="text-align: left;">0.11%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+20+25</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">21.3</td>
+<td style="text-align: left;">0.11%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1+25</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">21.1</td>
+<td style="text-align: left;">0.11%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">6</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: left;">0.10%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+12+17</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">19.7</td>
+<td style="text-align: left;">0.10%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1+2+17</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">19.7</td>
+<td style="text-align: left;">0.10%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4+17+23</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">19.4</td>
+<td style="text-align: left;">0.10%</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(obs_table, <span class="st">&quot;obs_table.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 
 </main>

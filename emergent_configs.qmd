@@ -1,7 +1,7 @@
 ---
 title: "Emergent Facial Configurations"
 author: "Jeffrey Girard"
-date: "2025-06-20"
+date: "2025-06-27"
 format: 
   html:
     page-layout: full
@@ -34,42 +34,20 @@ project_scheme <- scheme(
     asymmetry = c(1:2, 4:39)
   )
 )
-```
 
-## Observed Configurations
-
-```{r}
-plan("multisession", workers = 9)
-occ_counts <- 
-  facs |> 
-  select(-month) |> 
+protos <- 
+  prototypes |> 
+  filter(is.na(emotion_type) | emotion_type != "compound") |> 
   mutate(
-    occ = future_map_chr(facs_code, function(x) {
-      codes <- tidy(coding(x))[[1]]$occurrence
-      paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
-    }),
-    occ = na_if(occ, ""),
-    occ = na_if(occ, "NA"),
-    occ = coding(occ)
+    emotion = if_else(emotion %in% c("anger", "angry"), "anger", emotion),
+    emotion = if_else(emotion %in% c("confused", "confusion"), "confusion", emotion),
+    emotion = if_else(emotion %in% c("desire", "desire food", "desire sex"), "desire", emotion),
+    emotion = if_else(emotion %in% c("disgust", "disgusted"), "disgust", emotion),
+    emotion = if_else(emotion %in% c("fear", "fearful"), "fear", emotion),
+    emotion = if_else(emotion %in% c("happy", "happiness", "joy"), "happiness", emotion),
+    emotion = if_else(emotion %in% c("sad", "sadness"), "sadness", emotion),
+    emotion = if_else(emotion %in% c("surprise", "surprised"), "surprise", emotion)
   )
-```
-
-```{r}
-occ_counts |> 
-  summarize(
-    .by = occ,
-    n_subjects = n_distinct(subject),
-    n_events = n(),
-    duration = sum(facs_duration),
-    fullface_pct = duration / 19315.03
-  ) |> 
-  mutate(n_aus = str_count(occ, "\\+") + 1, .after = occ) |> 
-  arrange(desc(duration)) |> 
-  filter(fullface_pct >= 0.001) |> 
-  mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
-  kbl(digits = c(0, 0, 0, 0, 1, 0)) |> 
-  kable_styling() |>
-  scroll_box(height = "500px")
 ```
 
 ## Preprocessing for Mixture Modeling
@@ -242,4 +220,61 @@ parameters(fit) |>
   theme_bw()
 
 ggsave("four-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+```
+
+## Observed Configurations
+
+```{r}
+plan("multisession", workers = 9)
+occ_counts <- 
+  facs |> 
+  select(-month) |> 
+  mutate(
+    occ = future_map_chr(facs_code, function(x) {
+      codes <- tidy(coding(x))[[1]]$occurrence
+      paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
+    }),
+    occ = na_if(occ, ""),
+    occ = na_if(occ, "NA"),
+    occ = coding(occ)
+  )
+```
+
+```{r}
+obs_table <- 
+  occ_counts |> 
+  summarize(
+    .by = occ,
+    n_subjects = n_distinct(subject),
+    n_events = n(),
+    duration = sum(facs_duration),
+    fullface_pct = duration / 19315.03
+  ) |> 
+  mutate(n_aus = str_count(occ, "\\+") + 1, .after = occ) |> 
+  arrange(desc(duration)) |> 
+  filter(fullface_pct >= 0.001) |> 
+  mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
+  mutate(
+    proto = compare_to_prototypes(
+      occ, 
+      scheme = project_scheme, 
+      proto = protos,
+      uncoded = "omit", 
+      output = "exact"
+    ),
+    proto = map_chr(proto, \(x) str_c(names(x), collapse = "\n")),
+    cluster = map_chr(occ, \(x) {
+      aus <- paste0("AU", tidy(x)[[1]]$occurrence)
+      mat <- matrix(0, nrow = 1, ncol = length(facs_inc), dimnames = list(1, facs_inc))
+      if (!all(aus %in% facs_inc)) { return(NA_character_) }
+      mat[1, aus] <- 1
+      cluster <- which.max(posterior(fit, newdata = as.data.frame(mat)))
+      LETTERS[cluster]
+    })
+  )
+obs_table |> 
+  kbl(digits = c(0, 0, 0, 0, 1, 0, 0)) |> 
+  kable_styling() |>
+  scroll_box(height = "500px")
+write_csv(obs_table, "obs_table.csv")
 ```
