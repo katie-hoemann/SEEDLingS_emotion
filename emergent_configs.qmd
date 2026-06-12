@@ -1,7 +1,7 @@
 ---
 title: "Emergent Facial Configurations"
 author: "Jeffrey Girard"
-date: "2025-06-27"
+date: "2026-06-12"
 format: 
   html:
     page-layout: full
@@ -18,14 +18,32 @@ embed-resources: true
 
 library(tidyverse)
 library(furrr)
-library(kableExtra)
+library(gt)
 library(facs) #remotes::install_github("jmgirard/facs")
+library(datawizard)
 library(flexmix)
 
-info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
+info <- 
+  left_join(
+    read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds"), 
+    read_rds("facs_times.rds"), 
+    by = c("subject", "wave")
+  ) |> 
+  filter(
+    !(subject == 18 & wave == 6),
+    wave %in% c(6, 9)
+  ) |> 
+  mutate(
+    valid_session = session_duration - vis - hat,
+    valid_fullface = ffa - vis - hat
+  )
 facs <- 
   read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
-  left_join(info)
+  left_join(info) |>
+  filter(
+    !(subject == 18 & wave == 6),
+    wave %in% c(6, 9)
+  )
 
 project_scheme <- scheme(
   list(
@@ -119,7 +137,8 @@ facs_bin_prev <-
 facs_bin_prev |> 
   drop_na(Occurrence) |> 
   arrange(desc(Occurrence)) |> 
-  kbl(digits = c(0, 3))
+  gt() |>
+  fmt_percent(columns = "Occurrence")
 
 facs_inc <- 
   facs_bin_prev |> 
@@ -156,7 +175,7 @@ ures_perf <-
     BIC = map_dbl(ures@models, BIC),
     ICL = map_dbl(ures@models, ICL)
   )
-kbl(ures_perf) |> kable_styling()
+gt(ures_perf)
 
 ures_perf |> 
   pivot_longer(-k, names_to = "stat", values_to = "value") |> 
@@ -173,10 +192,10 @@ ures_perf |>
   theme_classic()
 ```
 
-### Four-Cluster Model (Favored by ICL)
+### Three-Cluster Model (Favored by ICL)
 
 ```{r}
-fit <- ures@models[[4]]
+fit <- ures@models[[3]]
 parameters(fit) |> 
   as_tibble(rownames = "AU") |> 
   pivot_longer(-AU, names_to = "Cluster", values_to = "Prob") |> 
@@ -219,7 +238,7 @@ parameters(fit) |>
   ) +
   theme_bw()
 
-ggsave("four-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+ggsave("three-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ## Observed Configurations
@@ -248,12 +267,14 @@ obs_table <-
     n_subjects = n_distinct(subject),
     n_events = n(),
     duration = sum(facs_duration),
-    fullface_pct = duration / 19315.03
+    session_pct = duration / sum(info$valid_session),
+    fullface_pct = duration / sum(info$valid_fullface)
   ) |> 
   mutate(n_aus = str_count(occ, "\\+") + 1, .after = occ) |> 
   arrange(desc(duration)) |> 
-  filter(fullface_pct >= 0.001) |> 
-  mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
+  drop_na(occ) |>
+  #filter(fullface_pct >= 0.001) |> 
+  #mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
   mutate(
     proto = compare_to_prototypes(
       occ, 
@@ -272,9 +293,26 @@ obs_table <-
       LETTERS[cluster]
     })
   )
-obs_table |> 
-  kbl(digits = c(0, 0, 0, 0, 1, 0, 0)) |> 
-  kable_styling() |>
-  scroll_box(height = "500px")
+
+describe_distribution(obs_table, select = c("n_aus", "n_subjects", "n_events", "duration", "session_pct", "fullface_pct"))
+
 write_csv(obs_table, "obs_table.csv")
 ```
+
+```{r}
+obs_table |> 
+  filter(fullface_pct >= 0.01) |> 
+  gt() |> 
+  fmt_number(
+    columns = "duration",
+    decimals = 1
+  ) |> 
+  fmt_percent(
+    columns = c("session_pct", "fullface_pct")
+  ) |> 
+  tab_options(
+    container.height = px(500),
+    container.overflow.y = TRUE
+  )
+```
+

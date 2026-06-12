@@ -1,7 +1,7 @@
 ---
 title: "Face Presence Analysis"
 author: "Jeffrey Girard"
-date: "2025-05-20"
+date: "2026-06-12"
 format: 
   html:
     embed-resources: true
@@ -18,6 +18,7 @@ library(rstan)
 library(brms)
 library(easystats)
 library(ggeffects)
+library(gt)
 ```
 
 ```{r data}
@@ -123,14 +124,15 @@ plot(
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
-    limits = c(0.25, 0.40)
+    limits = c(0, 0.5)
   ) +
   scale_x_continuous(
     breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Partial Face") +
-  theme_bw(base_size = 9)
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
 ggsave("ppl_window.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
@@ -284,15 +286,16 @@ plot(
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
-    limits = c(0.02, 0.055)
+    limits = c(0, 0.06)
   ) +
   scale_x_continuous(
     breaks = 0:3,
     labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
   ) +
   labs(x = "Age Window", y = "Percent of Video Frames with a Full Face") +
-  theme_bw(base_size = 9)
-ggsave("pfl_window.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+ggsave("fig2.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ### Full Face Monotonic Time Model
@@ -343,3 +346,103 @@ plot(conditional_effects(full_monotonic, effects = "window"), plot = FALSE)[[1]]
   theme_bw(base_size = 9)
 ggsave("pfm_window.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
+
+## Descriptive Tables
+
+```{r}
+df_part |>
+  drop_na() |>
+  summarize(
+      .by = wave,
+      n = n(),
+      Mean = mean(pct_part, na.rm = TRUE),
+      SD = sd(pct_part, na.rm = TRUE),
+      Median = median(pct_part, na.rm = TRUE),
+      MAD = mad(pct_part, na.rm = TRUE)
+  ) |>
+  rename(Wave = wave) |>
+  gt() |>
+  tab_header(title = "Partial Faces") |>
+  fmt_percent(columns = c("Mean", "SD", "Median", "MAD"))
+```
+
+
+```{r}
+df_full |>
+  drop_na() |>
+  summarize(
+      .by = wave,
+      n = n(),
+      Mean = mean(pct_full, na.rm = TRUE),
+      SD = sd(pct_full, na.rm = TRUE),
+      Median = median(pct_full, na.rm = TRUE),
+      MAD = mad(pct_full, na.rm = TRUE)
+  ) |>
+  rename(Wave = wave) |>
+  gt() |>
+  tab_header(title = "Full Faces") |>
+  fmt_percent(columns = c("Mean", "SD", "Median", "MAD"))
+```
+
+## Results Table
+
+```{r}
+models <- list(
+  "Partial" = part_linear,
+  "Full" = full_linear
+)
+
+res <- 
+  map(
+    models,
+    \(x) { 
+      describe_posterior(x, parameters = "window") |> 
+      as_tibble() |> 
+      transmute(
+        Est. = Median,
+        CL = CI_low,
+        CU = CI_high,
+        OR = exp(Est.),
+        OR_CL = exp(CL),
+        OR_CU = exp(CU),
+        pval = 2 * (1 - pd)
+      )
+    }
+  ) |> 
+  list_rbind(names_to = "Outcome")
+
+gt_table <- 
+  gt(res) |> 
+  fmt_number(
+    columns = Est.:OR_CU, 
+    decimals = 2
+  ) |> 
+  fmt(
+    columns = pval,
+    fns = \(x) {
+      char_x <- sprintf("%.3f", x)
+      char_x <- sub("^0\\.", ".", char_x)
+      ifelse(x < 0.001, "<.001", char_x)
+    }
+  ) |> 
+  cols_merge(
+    columns = c(Est., CL, CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_merge(
+    columns = c(OR, OR_CL, OR_CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_label(
+    Est. = "Logit Scale",
+    OR = "Odds Ratio",
+    pval = "p-value"
+  ) |> 
+  cols_align(
+    align = "center",
+    columns = c(Est., OR)
+  )
+
+gt_table
+```
+

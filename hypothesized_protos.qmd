@@ -1,7 +1,7 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2025-06-27"
+date: "2026-05-29"
 format: 
   html:
     page-layout: full
@@ -18,12 +18,25 @@ embed-resources: true
 
 library(tidyverse)
 library(furrr)
-library(kableExtra)
+library(gt)
 library(facs) # remotes::install_github("jmgirard/facs")
-library(brms)
+library(ordbetareg)
 library(easystats)
 
-info <- read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds")
+info <- 
+  left_join(
+    read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds"), 
+    read_rds("facs_times.rds"), 
+    by = c("subject", "wave")
+  ) |> 
+  filter(
+    !(subject == 18 & wave == 6),
+    wave %in% c(6, 9)
+  ) |> 
+  mutate(
+    valid_session = session_duration - vis - hat,
+    valid_fullface = ffa - vis - hat
+  )
 
 facs <- 
   read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
@@ -98,8 +111,7 @@ protos2 |>
   ) |> 
   arrange(desc(n_emotions), remaining_aus) |> 
   filter(n_emotions > 1) |> 
-  kbl() |> 
-  kable_styling()
+  gt()
 ```
 
 ## Count Prototypes
@@ -127,7 +139,7 @@ occ_counts_nested <-
 merged <-
   crossing(
     occ = coding(sort(unique(c(occ_counts_nested$occ, protos2$code)))), 
-    wave = c(6, 9, 12, 15)
+    wave = c(6, 9)
   ) |> 
   left_join(
     y = occ_counts_nested,
@@ -141,6 +153,14 @@ merged <-
 ```
 
 ```{r}
+wave_totals <- 
+  info |> 
+  summarize(
+    .by = wave,
+    wave_session_total = sum(valid_session, na.rm = TRUE),
+    wave_fullface_total = sum(valid_fullface, na.rm = TRUE)
+  )
+
 proto_waves <- 
   merged |> 
   drop_na(emotion) |> 
@@ -160,18 +180,20 @@ proto_waves <-
     total_sec = map_dbl(
       all_events,
       \(x) ifelse(nrow(x) > 0, sum(distinct(x)$facs_duration), 0)
-    ),
-    total_pct = total_sec / sum(info$session_duration),
-    total_pct_str = sprintf("%.3f%%", total_pct * 100)
+    )
+  ) |> 
+  left_join(wave_totals, by = "wave") |> 
+  mutate(
+    session_pct = total_sec / wave_session_total,
+    fullface_pct = total_sec / wave_fullface_total
   ) |> 
   arrange(emotion, wave)
-kbl(
-  proto_waves |> 
-    select(-all_events) |> 
-    mutate(emotion = str_to_title(emotion)), 
-  digits = c(0, 0, 0, 0, 0, 0, 1, 4)
-) |> 
-  kable_styling()
+
+proto_waves |> 
+  select(-c(all_events, wave_session_total, wave_fullface_total)) |> 
+  mutate(emotion = str_to_title(emotion)) |> 
+  gt() |> 
+  fmt_percent(columns = c(session_pct, fullface_pct), decimals = 2)
 ```
 
 ```{r}
@@ -179,12 +201,12 @@ proto_waves |>
   mutate(
     Window = factor(
       wave, 
-      levels = c(6, 9, 12, 15), 
-      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
+      levels = c(6, 9), 
+      labels = c("6-8 months", "9-11 months")
     ),
     Emotion = str_to_title(emotion)
   ) |> 
-  ggplot(aes(x = Window, y = total_pct, color = Emotion, shape = Emotion, group = Emotion)) +
+  ggplot(aes(x = Window, y = fullface_pct, color = Emotion, shape = Emotion, group = Emotion)) +
   geom_line() + 
   geom_point(size = 2.5) +
   scale_x_discrete() +
@@ -192,55 +214,76 @@ proto_waves |>
   scale_color_manual(values = scales::hue_pal()(21)) +
   scale_shape_manual(values = rep(c(21, 22, 24), length.out = 21)) +
   guides(color = guide_legend(ncol = 2), shape = guide_legend(ncol = 2)) +
-  labs(x = "Age Window", y = "Percentage of All Video Frames", 
+  labs(x = "Age Window", y = "Percentage of Valid Full Face Video Frames", 
        color = "Emotion Category", shape = "Emotion Category") +
   theme_bw(base_size = 9)
 ggsave("pct_window_emotion.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ```{r}
+pct_ratio <- sum(info$valid_fullface) / sum(info$valid_session)
+
 proto_waves |> 
-  summarize(.by = emotion, total_pct = mean(total_pct)) |> 
-  mutate(Emotion = fct_reorder(factor(str_to_title(emotion)), .x = total_pct)) |> 
-  ggplot(aes(x = total_pct, y = Emotion)) +
-  geom_col() +
+  summarize(
+    .by = emotion, 
+    total_sec = sum(total_sec)
+  ) |> 
+  mutate(
+    session_pct = total_sec / sum(info$valid_session),
+    fullface_pct = total_sec / sum(info$valid_fullface),
+    Emotion = fct_reorder(factor(str_to_title(emotion)), .x = fullface_pct)
+  ) |> 
+  ggplot(aes(x = fullface_pct, y = Emotion)) +
+  geom_segment(aes(xend = 0, yend = Emotion), color = "cornflowerblue") +
+  geom_point(color = "cornflowerblue") +
   scale_y_discrete(drop = FALSE) +
-  scale_x_continuous(labels = scales::percent) +
-  labs(
-    x = "Percentage of All Video Frames", 
-    y = "Emotion Category",
+  scale_x_continuous(
+    labels = scales::percent,
+    sec.axis = sec_axis(
+      transform = ~ . * pct_ratio,
+      name = "Percentage of Valid Session Frames",
+      labels = scales::percent,
+      breaks = \(x) scales::breaks_extended()(x / pct_ratio) * pct_ratio
+    )
   ) +
-  theme_bw(base_size = 9)
-ggsave("emotion_pct.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+  labs(
+    x = "Percentage of Valid Full Face Frames", 
+    y = "Emotion Category"
+  ) +
+  theme_bw(base_size = 10) +
+  theme(panel.grid.major.y = element_blank())
+ggsave("fig3.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
 
 ```{r}
 proto_waves |> 
-  summarize(.by = emotion, total_sec = sum(total_sec), total_pct = mean(total_pct)) |>
-  mutate(fullface_pct = total_sec / 19315.03) |>
-  arrange(desc(total_pct)) |> 
-  mutate(
-    total_pct = scales::percent(total_pct, accuracy = 0.001), 
-    fullface_pct = scales::percent(fullface_pct, accuracy = 0.001)
-  ) |> 
-  kbl() |> 
-  kable_styling()
-```
-
-```{r}
-proto_waves |> 
-  summarize(total_sec = sum(total_sec)) |>
-  mutate(
-    total_pct = total_sec / sum(info$session_duration),
-    fullface_pct = total_sec / 19315.03
+  summarize(
+    .by = emotion, 
+    total_sec = sum(total_sec)
   ) |>
-  arrange(desc(total_pct)) |> 
   mutate(
-    total_pct = scales::percent(total_pct, accuracy = 0.001), 
-    fullface_pct = scales::percent(fullface_pct, accuracy = 0.001)
+    session_pct = total_sec / sum(info$valid_session),
+    fullface_pct = total_sec / sum(info$valid_fullface)
+  ) |>
+  arrange(desc(fullface_pct)) |> 
+  mutate(emotion = str_to_title(emotion)) |> 
+  gt() |> 
+  grand_summary_rows(
+    columns = c(total_sec, session_pct, fullface_pct),
+    fns = list(Total = ~sum(., na.rm = TRUE)),
+    fmt = list(
+      ~ fmt_percent(., columns = c(session_pct, fullface_pct), decimals = 2),
+      ~ fmt_number(., columns = total_sec, decimals = 1)
+    )
   ) |> 
-  kbl() |> 
-  kable_styling()
+  fmt_percent(
+    columns = c(session_pct, fullface_pct), 
+    decimals = 2
+  ) |> 
+  fmt_number(
+    columns = total_sec,
+    decimals = 1
+  )
 ```
 
 ## Model Prototypes
@@ -248,57 +291,97 @@ proto_waves |>
 ```{r}
 occ_counts_long <- 
   occ_counts |> 
+  # Sort chronologically within each grouping
+  arrange(subject, wave, occ, facs_onset) |> 
+  mutate(
+    .by = c(subject, wave, occ),
+    # Find the maximum offset time seen prior to the current row
+    max_offset_so_far = cummax(lag(facs_offset, default = -Inf)),
+    # Start a new block if current onset happens after the latest offset
+    is_new_block = facs_onset > max_offset_so_far,
+    # Assign a unique ID to each continuous block of time
+    block_id = cumsum(is_new_block)
+  ) |> 
+  # Collapse each block into a single, merged start and end time
+  summarize(
+    .by = c(subject, wave, occ, block_id),
+    merged_onset = min(facs_onset),
+    merged_offset = max(facs_offset)
+  ) |> 
+  # Calculate the duration of the distinct blocks
+  mutate(block_duration = merged_offset - merged_onset) |> 
+  # Sum the blocks to get the final, accurate duration
   summarize(
     .by = c(subject, wave, occ),
-    occ_duration = sum(facs_duration),
-    session_duration = first(session_duration)
+    occ_duration = sum(block_duration)
   )
 ```
 
 
 ```{r}
-merged2 <-
-  crossing(
-    occ = coding(sort(unique(c(occ_counts_long$occ, protos2$code)))), 
-    wave = c(6, 9, 12, 15)
-  ) |> 
-  left_join(
-    y = occ_counts_long,
-    by = join_by(occ, wave)
-  ) |> 
-  left_join(
-    y = protos2 |> mutate(remaining_aus = coding(remaining_aus)),
+protos_distinct <- 
+  protos2 |> 
+  drop_na(emotion) |> 
+  distinct(emotion, remaining_aus) |> 
+  mutate(remaining_aus = coding(remaining_aus))
+
+emotion_events <- 
+  occ_counts |> 
+  inner_join(
+    y = protos_distinct,
     by = join_by(occ == remaining_aus),
     relationship = "many-to-many"
+  ) |> 
+  arrange(subject, wave, emotion, facs_onset) |> 
+  mutate(
+    .by = c(subject, wave, emotion),
+    max_offset_so_far = cummax(lag(facs_offset, default = -Inf)),
+    is_new_block = facs_onset > max_offset_so_far,
+    block_id = cumsum(is_new_block)
+  ) |> 
+  summarize(
+    .by = c(subject, wave, emotion, block_id),
+    merged_onset = min(facs_onset),
+    merged_offset = max(facs_offset)
+  ) |> 
+  mutate(block_duration = merged_offset - merged_onset) |> 
+  summarize(
+    .by = c(subject, wave, emotion),
+    occ_duration = sum(block_duration)
   )
 ```
 
 ```{r}
 emotion_long <- 
-  merged2 |> 
-  filter(!is.na(emotion), !is.na(subject)) |> 
-  summarize(
-    .by = c(subject, wave, emotion),
-    occ_duration = sum(occ_duration)
+  crossing(
+    subject = unique(info$subject),
+    wave = c(6, 9),
+    emotion = unique(protos_distinct$emotion)
   ) |> 
-  complete(subject, wave, emotion, fill = list(occ_duration = 0)) |> 
-  arrange(subject, wave, emotion) |> 
+  left_join(emotion_events, by = join_by(subject, wave, emotion)) |> 
+  replace_na(list(occ_duration = 0)) |> 
   left_join(
-    y = info |> select(subject, wave, session_duration),
+    y = info |> select(subject, wave, valid_session, valid_fullface),
     by = join_by(subject, wave)
   ) |> 
-  mutate(pct_total = occ_duration / session_duration) |> 
-  mutate(.by = emotion, m_pct = mean(pct_total, na.rm = TRUE)) |> 
-  filter(m_pct >= 0.0003)
+  mutate(
+    session_pct = occ_duration / valid_session,
+    fullface_pct = occ_duration / valid_fullface
+  ) |> 
+  mutate(
+    .by = emotion,
+    m_pct = sum(occ_duration, na.rm = TRUE) / sum(valid_fullface, na.rm = TRUE)
+  ) |> 
+  filter(m_pct >= 0.01)
 ```
 
 ```{r}
-describe_distribution(emotion_long, select = "pct_total") |> print_md()
-ggplot(emotion_long, aes(x = pct_total)) +
+describe_distribution(emotion_long, select = c("session_pct", "fullface_pct")) |> print_md()
+ggplot(emotion_long, aes(x = fullface_pct)) +
   facet_wrap(~emotion, scales = "free") +
   geom_histogram(na.rm = TRUE, color = "white", bins = 30) +
   scale_x_continuous(labels = scales::percent) +
-  labs(x = "Percent of Video Frames with Prototype", y = "Video Count") +
+  labs(x = "Percent of Valid Full Face Video Frames with Prototype", y = "Video Count") +
   theme_bw()
 ```
 
@@ -307,78 +390,119 @@ emotion_wide <-
   emotion_long |> 
   pivot_wider(
     names_from = emotion,
-    values_from = pct_total,
+    values_from = fullface_pct,
     id_cols = c(subject, wave)
   ) |> 
-  mutate(.after = wave, window = as.integer(factor(wave)) - 1)
+  mutate(
+    .after = wave, 
+    window = factor(wave),
+    window_linear = as.integer(factor(wave)) - 1
+  )
 ```
 
 ```{r}
-mv_linear <- brm(
-  formula = bf(
-    mvbind(contentment, fear, happiness, interest, sadness, surprise) ~ 1 + window + (1 + window | subject),
-    zi ~ 1 + window + (1 + window | subject)
-  ),
-  family = zero_inflated_beta(link = "logit", link_phi = "log", link_zi = "logit"),
-  data = emotion_wide,
-  iter = 10000,
-  warmup = 9000,
-  chains = 3,
-  cores = 3,
-  refresh = 0,
-  init = 0,
-  file = "mv_linear",
-  control = list(adapt_delta = 0.99, max_treedepth = 12),
-  backend = "cmdstanr",
-  threads = threading(3)
-)
-```
-
-```{r}
+#| message: false
 #| warning: false
 
-res_long <- 
-  describe_posterior(mv_linear, component = "all", parameters = "window") |> 
-  as_tibble() |> 
-  transmute(
-    Emotion = str_remove(Parameter, "b_"),
-    Emotion = str_remove(Emotion, "zi_"),
-    Emotion = str_remove(Emotion, "_window"),
-    Component,
-    Est = Median,
-    CL = CI_low,
-    CU = CI_high,
-    pval = 1 - pd
-  )
-res_long |> 
-  kbl(digits = c(0, 0, 2, 2, 2, 3)) |> 
-  kable_styling()
+dvs <- c("contentment", "fear", "happiness", "interest", "sadness", "surprise")
+
+models <- 
+  map(
+    dvs,
+    \(x) {
+      ordbetareg(
+        formula = as.formula(
+          paste0(x, " ~ 1 + window + (1 + window | subject)")
+        ),
+        data = emotion_wide,
+        coef_prior_mean = 0,
+        coef_prior_SD = 1.5,
+        chains = 4,
+        cores = 4,
+        refresh = 0,
+        backend = "cmdstanr",
+        file = paste0("fit_", x),
+        control = list(adapt_delta = 0.9)
+      )
+    }
+  ) |> 
+  set_names(str_to_title(dvs))
 ```
 
 ```{r}
-res_long |> 
-  transmute(
-    Emotion, 
-    Component,
-    plab = ifelse(pval < .001, "p<.001", str_glue("p={sprintf('%.3f', pval)}")),
-    plab = str_replace(plab, "=0\\.", "=\\."),
-    Result = sprintf("%.2f (%s)", exp(Est), plab)
+res <- 
+  map(
+    models,
+    \(x) { 
+      describe_posterior(x, parameters = "window") |> 
+      as_tibble() |> 
+      transmute(
+        Est. = Median,
+        CL = CI_low,
+        CU = CI_high,
+        OR = exp(Est.),
+        OR_CL = exp(CL),
+        OR_CU = exp(CU),
+        pval = 2*(1 - pd)
+      )
+    }
   ) |> 
-  select(-plab) |> 
-  pivot_wider(names_from = Component, values_from = Result) |> 
-  rename(OR_Conditional = conditional, OR_ZeroInflated = zi) |> 
-  kbl() |> 
-  kable_styling()
+  set_names(str_to_title(dvs)) |> 
+  list_rbind(names_to = "Outcome")
+
+gt(res) |> 
+  fmt_number(
+    columns = Est.:OR_CU, 
+    decimals = 2
+  ) |> 
+  fmt(
+    columns = pval,
+    fns = \(x) {
+      char_x <- sprintf("%.3f", x)
+      char_x <- sub("^0\\.", ".", char_x)
+      ifelse(x < 0.001, "<.001", char_x)
+    }
+  ) |> 
+  cols_merge(
+    columns = c(Est., CL, CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_merge(
+    columns = c(OR, OR_CL, OR_CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_label(
+    Est. = "Logit Scale",
+    OR = "Odds Ratio",
+    pval = "p-value"
+  ) |> 
+  cols_align(
+    align = "center",
+    columns = c(Est., OR)
+  )
+```
+
+```{=html}
+<p><details><summary>Posterior predictive checks</summary>
 ```
 
 ```{r}
 walk(
-  c("contentment", "fear", "happiness", "interest", "sadness", "surprise"),
+  dvs,
   \(x) {
-    cat('# ', x, "\n")
-    print(pp_check(mv_linear, ndraws = 50, resp = x))
-    cat("\n")
+    lbl <- str_to_title(x)
+    print(
+      pp_check(
+        models[[lbl]], 
+        ndraws = 50, 
+        resp = x
+      ) + 
+      labs(title = lbl)
+    )
   }
 )
 ```
 
+```{=html}
+</p></details>
+```
