@@ -1,13 +1,10 @@
 ---
 title: "Hypothesized Prototypes"
 author: "Jeffrey Girard"
-date: "2026-05-29"
+date: "2026-06-24"
 format: 
   html:
     page-layout: full
-    fig-width: 10
-    fig-format: png
-    fig-dpi: 300
 embed-resources: true
 ---
 
@@ -22,6 +19,7 @@ library(gt)
 library(facs) # remotes::install_github("jmgirard/facs")
 library(ordbetareg)
 library(easystats)
+library(patchwork)
 
 info <- 
   left_join(
@@ -29,14 +27,17 @@ info <-
     read_rds("facs_times.rds"), 
     by = c("subject", "wave")
   ) |> 
-  filter(
-    !(subject == 18 & wave == 6),
-    wave %in% c(6, 9)
-  ) |> 
+  filter(!(subject == 18 & wave == 6)) |> 
   mutate(
     valid_session = session_duration - vis - hat,
-    valid_fullface = ffa - vis - hat
+    valid_fullface = ffa - vis - hat,
+    phase = if_else(wave %in% c(6, 9), "I", "II")
   )
+
+valid_session_i <- info |> filter(phase == "I") |> pull(valid_session) |> sum()
+valid_session_ii <- info |> filter(phase == "II") |> pull(valid_session) |> sum()
+valid_fullface_i <- info |> filter(phase == "I") |> pull(valid_fullface) |> sum()
+valid_fullface_ii <- info |> filter(phase == "II") |> pull(valid_fullface) |> sum()
 
 facs <- 
   read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
@@ -97,6 +98,7 @@ protos2 <-
     remaining_aus = map2_chr(code, missing_aus, \(x, y) find_remaining_aus(x, y))
   ) |> 
   filter(!is.na(remaining_aus))
+
 write_csv(protos2, "proto_summary.csv", na = "")
 ```
 
@@ -132,14 +134,17 @@ occ_counts <-
   )
 occ_counts_nested <- 
   occ_counts |> 
-  nest(.by = c(occ, wave), events = c(subject, event_id, facs_duration, session_duration))
+  nest(
+    .by = c(occ, wave), 
+    events = c(subject, event_id, facs_duration, session_duration)
+  )
 ```
 
 ```{r}
 merged <-
   crossing(
     occ = coding(sort(unique(c(occ_counts_nested$occ, protos2$code)))), 
-    wave = c(6, 9)
+    wave = c(6, 9, 12, 15)
   ) |> 
   left_join(
     y = occ_counts_nested,
@@ -183,6 +188,7 @@ proto_waves <-
     )
   ) |> 
   left_join(wave_totals, by = "wave") |> 
+  mutate(phase = ifelse(wave %in% c(6, 9), "I", "II"), .before = wave) |> 
   mutate(
     session_pct = total_sec / wave_session_total,
     fullface_pct = total_sec / wave_fullface_total
@@ -197,16 +203,20 @@ proto_waves |>
 ```
 
 ```{r}
+#| fig-height: 4.0
+#| fig-width: 6.5
 proto_waves |> 
   mutate(
     Window = factor(
       wave, 
-      levels = c(6, 9), 
-      labels = c("6-8 months", "9-11 months")
+      levels = c(6, 9, 12, 15), 
+      labels = c("6-8 months", "9-11 months", "12-14 months", "15-17 months")
     ),
+    Phase = factor(phase, labels = c("Phase I (6–11 months)", "Phase II (12–17 months)")),
     Emotion = str_to_title(emotion)
   ) |> 
   ggplot(aes(x = Window, y = fullface_pct, color = Emotion, shape = Emotion, group = Emotion)) +
+  facet_wrap(~Phase, scales = "free") +
   geom_line() + 
   geom_point(size = 2.5) +
   scale_x_discrete() +
@@ -221,67 +231,129 @@ ggsave("pct_window_emotion.png", width = 6.5, height = 4.0, units = "in", dpi = 
 ```
 
 ```{r}
-pct_ratio <- sum(info$valid_fullface) / sum(info$valid_session)
-
-proto_waves |> 
+#| fig-height: 7.0
+#| fig-width: 6.5
+phase_totals <- 
+  info |> 
   summarize(
-    .by = emotion, 
+    .by = phase,
+    phase_session_total = sum(valid_session, na.rm = TRUE),
+    phase_fullface_total = sum(valid_fullface, na.rm = TRUE)
+  ) |> 
+  mutate(phase_ratio = phase_fullface_total / phase_session_total)
+
+pwdat <- 
+  proto_waves |> 
+  mutate(
+    Phase = factor(
+      phase, 
+      labels = c(
+        "Phase I (6–11 months, includes primary caregiver)", 
+        "Phase II (12–17 months, excludes primary caregiver)"
+      )
+    )
+  ) |> 
+  summarize(
+    .by = c(phase, Phase, emotion), 
     total_sec = sum(total_sec)
   ) |> 
+  left_join(phase_totals, by = "phase") |> 
   mutate(
-    session_pct = total_sec / sum(info$valid_session),
-    fullface_pct = total_sec / sum(info$valid_fullface),
+    session_pct = total_sec / phase_session_total,
+    fullface_pct = total_sec / phase_fullface_total,
     Emotion = fct_reorder(factor(str_to_title(emotion)), .x = fullface_pct)
-  ) |> 
-  ggplot(aes(x = fullface_pct, y = Emotion)) +
-  geom_segment(aes(xend = 0, yend = Emotion), color = "cornflowerblue") +
-  geom_point(color = "cornflowerblue") +
-  scale_y_discrete(drop = FALSE) +
-  scale_x_continuous(
-    labels = scales::percent,
-    sec.axis = sec_axis(
-      transform = ~ . * pct_ratio,
-      name = "Percentage of Valid Session Frames",
+  )
+
+create_phase_plot <- function(phase_num) {
+  
+  pct_ratio <- phase_totals |> filter(phase == phase_num) |> pull(phase_ratio)
+  data_subset <- filter(pwdat, phase == phase_num)
+  phase_color <- if_else(phase_num == "I", "#66c2a5", "#fc8d62")
+  
+  ggplot(data_subset, aes(x = fullface_pct, y = Emotion)) +
+    facet_wrap(~Phase) +
+    geom_segment(
+      color = phase_color, 
+      aes(xend = 0, yend = Emotion), 
+      linewidth = 3/4
+    ) +
+    geom_point(
+      color = phase_color, 
+      size = 2
+    ) +
+    scale_y_discrete(drop = FALSE) +
+    scale_x_continuous(
       labels = scales::percent,
-      breaks = \(x) scales::breaks_extended()(x / pct_ratio) * pct_ratio
+      sec.axis = sec_axis(
+        transform = ~ . * pct_ratio,
+        name = "Percentage of Valid Session Frames",
+        labels = scales::percent,
+        breaks = \(x) scales::breaks_extended()(x / pct_ratio) * pct_ratio
+      )
+    ) +
+    labs(
+      x = "Percentage of Valid Full Face Frames", 
+      y = "Emotion Category"
+    ) +
+    theme_bw(base_size = 10) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      plot.margin = margin(10, 10, 10, 10)
     )
-  ) +
-  labs(
-    x = "Percentage of Valid Full Face Frames", 
-    y = "Emotion Category"
-  ) +
-  theme_bw(base_size = 10) +
-  theme(panel.grid.major.y = element_blank())
-ggsave("fig3.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
+}
+
+create_phase_plot("I") / create_phase_plot("II")
+ggsave("fig3.png", width = 6.5, height = 7.0, units = "in", dpi = 300)
 ```
+
 
 ```{r}
 proto_waves |> 
   summarize(
-    .by = emotion, 
+    .by = c(phase, emotion), 
     total_sec = sum(total_sec)
   ) |>
+  left_join(phase_totals, by = "phase") |> 
   mutate(
-    session_pct = total_sec / sum(info$valid_session),
-    fullface_pct = total_sec / sum(info$valid_fullface)
+    session_pct = total_sec / phase_session_total,
+    fullface_pct = total_sec / phase_fullface_total
   ) |>
-  arrange(desc(fullface_pct)) |> 
+  select(-starts_with("phase_")) |> 
+  pivot_wider(
+    names_from = phase,
+    values_from = c(total_sec, session_pct, fullface_pct)
+  ) |> 
+  select(emotion, ends_with("_I"), ends_with("_II")) |> 
   mutate(emotion = str_to_title(emotion)) |> 
   gt() |> 
+    tab_spanner(
+      label = "Phase I",
+      columns = ends_with("_I")
+    ) |> 
+    tab_spanner(
+      label = "Phase II",
+      columns = ends_with("_II")
+    ) |> 
+  cols_label(
+    emotion = "Emotion",
+    starts_with("total_sec") ~ "Total (Sec)",
+    starts_with("session") ~ "Session (%)",
+    starts_with("fullface") ~ "Full Face (%)"
+  ) |> 
   grand_summary_rows(
-    columns = c(total_sec, session_pct, fullface_pct),
+    columns = -emotion,
     fns = list(Total = ~sum(., na.rm = TRUE)),
     fmt = list(
-      ~ fmt_percent(., columns = c(session_pct, fullface_pct), decimals = 2),
-      ~ fmt_number(., columns = total_sec, decimals = 1)
+      ~ fmt_percent(., columns = matches("pct"), decimals = 2),
+      ~ fmt_number(., columns = matches("total"), decimals = 1)
     )
-  ) |> 
+  ) |>
   fmt_percent(
-    columns = c(session_pct, fullface_pct), 
+    columns = matches("pct"), 
     decimals = 2
   ) |> 
   fmt_number(
-    columns = total_sec,
+    columns = matches("total"),
     decimals = 1
   )
 ```
@@ -316,7 +388,6 @@ occ_counts_long <-
     occ_duration = sum(block_duration)
   )
 ```
-
 
 ```{r}
 protos_distinct <- 
@@ -355,13 +426,13 @@ emotion_events <-
 emotion_long <- 
   crossing(
     subject = unique(info$subject),
-    wave = c(6, 9),
+    wave = unique(info$wave),
     emotion = unique(protos_distinct$emotion)
   ) |> 
   left_join(emotion_events, by = join_by(subject, wave, emotion)) |> 
   replace_na(list(occ_duration = 0)) |> 
   left_join(
-    y = info |> select(subject, wave, valid_session, valid_fullface),
+    y = info |> select(subject, phase, wave, valid_session, valid_fullface),
     by = join_by(subject, wave)
   ) |> 
   mutate(
@@ -369,59 +440,54 @@ emotion_long <-
     fullface_pct = occ_duration / valid_fullface
   ) |> 
   mutate(
-    .by = emotion,
+    .by = c(phase, emotion),
     m_pct = sum(occ_duration, na.rm = TRUE) / sum(valid_fullface, na.rm = TRUE)
   ) |> 
   filter(m_pct >= 0.01)
 ```
 
-```{r}
-describe_distribution(emotion_long, select = c("session_pct", "fullface_pct")) |> print_md()
-ggplot(emotion_long, aes(x = fullface_pct)) +
-  facet_wrap(~emotion, scales = "free") +
-  geom_histogram(na.rm = TRUE, color = "white", bins = 30) +
-  scale_x_continuous(labels = scales::percent) +
-  labs(x = "Percent of Valid Full Face Video Frames with Prototype", y = "Video Count") +
-  theme_bw()
-```
+### Phase I
 
 ```{r}
-emotion_wide <- 
+emotion_wide_i <- 
   emotion_long |> 
+  filter(phase == "I") |> 
   pivot_wider(
     names_from = emotion,
     values_from = fullface_pct,
     id_cols = c(subject, wave)
   ) |> 
   mutate(
-    .after = wave, 
-    window = factor(wave),
-    window_linear = as.integer(factor(wave)) - 1
+    subject = factor(subject),
+    wave,
+    Wave = factor(wave), 
+    .after = 1
   )
+summary(emotion_wide_i)
 ```
 
 ```{r}
 #| message: false
 #| warning: false
 
-dvs <- c("contentment", "fear", "happiness", "interest", "sadness", "surprise")
+dvs <- emotion_wide_i |> select(-subject, -wave, -Wave) |> colnames()
 
-models <- 
+models_I <- 
   map(
     dvs,
     \(x) {
       ordbetareg(
         formula = as.formula(
-          paste0(x, " ~ 1 + window + (1 + window | subject)")
+          paste0(x, " ~ 1 + Wave + (1 | subject)")
         ),
-        data = emotion_wide,
+        data = emotion_wide_i,
         coef_prior_mean = 0,
         coef_prior_SD = 1.5,
         chains = 4,
         cores = 4,
         refresh = 0,
         backend = "cmdstanr",
-        file = paste0("fit_", x),
+        file = paste0("fit_I_", x),
         control = list(adapt_delta = 0.9)
       )
     }
@@ -430,11 +496,13 @@ models <-
 ```
 
 ```{r}
-res <- 
+#| message: false
+
+res_I <- 
   map(
-    models,
+    models_I,
     \(x) { 
-      describe_posterior(x, parameters = "window") |> 
+      describe_posterior(x, parameters = "Wave") |> 
       as_tibble() |> 
       transmute(
         Est. = Median,
@@ -448,9 +516,13 @@ res <-
     }
   ) |> 
   set_names(str_to_title(dvs)) |> 
-  list_rbind(names_to = "Outcome")
+  list_rbind(names_to = "Outcome") |> 
+  mutate(.before = 1, Phase = "I")
 
-gt(res) |> 
+gt(res_I) |> 
+  tab_header(
+    title = md("Contrast: Wave 9 -- Wave 6")
+  ) |> 
   fmt_number(
     columns = Est.:OR_CU, 
     decimals = 2
@@ -482,27 +554,108 @@ gt(res) |>
   )
 ```
 
-```{=html}
-<p><details><summary>Posterior predictive checks</summary>
+### Phase II
+
+```{r}
+emotion_wide_ii <- 
+  emotion_long |> 
+  filter(phase == "II") |> 
+  pivot_wider(
+    names_from = emotion,
+    values_from = fullface_pct,
+    id_cols = c(subject, wave)
+  ) |> 
+  mutate(
+    subject = factor(subject),
+    wave,
+    Wave = factor(wave), 
+    .after = 1
+  )
+summary(emotion_wide_ii)
 ```
 
 ```{r}
-walk(
-  dvs,
-  \(x) {
-    lbl <- str_to_title(x)
-    print(
-      pp_check(
-        models[[lbl]], 
-        ndraws = 50, 
-        resp = x
-      ) + 
-      labs(title = lbl)
-    )
-  }
-)
+#| message: false
+#| warning: false
+
+dvs <- emotion_wide_ii |> select(-subject, -wave, -Wave) |> colnames()
+
+models_II <- 
+  map(
+    dvs,
+    \(x) {
+      ordbetareg(
+        formula = as.formula(
+          paste0(x, " ~ 1 + Wave + (1 | subject)")
+        ),
+        data = emotion_wide_ii,
+        coef_prior_mean = 0,
+        coef_prior_SD = 1.5,
+        chains = 4,
+        cores = 4,
+        refresh = 0,
+        backend = "cmdstanr",
+        file = paste0("fit_II_", x),
+        control = list(adapt_delta = 0.9)
+      )
+    }
+  ) |> 
+  set_names(str_to_title(dvs))
 ```
 
-```{=html}
-</p></details>
+```{r}
+res_II <- 
+  map(
+    models_II,
+    \(x) { 
+      describe_posterior(x, parameters = "Wave") |> 
+      as_tibble() |> 
+      transmute(
+        Est. = Median,
+        CL = CI_low,
+        CU = CI_high,
+        OR = exp(Est.),
+        OR_CL = exp(CL),
+        OR_CU = exp(CU),
+        pval = 2*(1 - pd)
+      )
+    }
+  ) |> 
+  set_names(str_to_title(dvs)) |> 
+  list_rbind(names_to = "Outcome") |> 
+  mutate(.before = 1, Phase = "II")
+
+gt(res_II) |> 
+  tab_header(
+    title = md("Contrast: Wave 15 -- Wave 12")
+  ) |> 
+  fmt_number(
+    columns = Est.:OR_CU, 
+    decimals = 2
+  ) |> 
+  fmt(
+    columns = pval,
+    fns = \(x) {
+      char_x <- sprintf("%.3f", x)
+      char_x <- sub("^0\\.", ".", char_x)
+      ifelse(x < 0.001, "<.001", char_x)
+    }
+  ) |> 
+  cols_merge(
+    columns = c(Est., CL, CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_merge(
+    columns = c(OR, OR_CL, OR_CU),
+    pattern = "{1} ({2}, {3})"
+  ) |> 
+  cols_label(
+    Est. = "Logit Scale",
+    OR = "Odds Ratio",
+    pval = "p-value"
+  ) |> 
+  cols_align(
+    align = "center",
+    columns = c(Est., OR)
+  )
 ```
