@@ -1,7 +1,7 @@
 ---
 title: "Occlusion Coding"
 author: "Jeffrey Girard"
-date: "2026-04-27"
+date: "2026-06-30"
 format: 
   html:
     page-layout: full
@@ -17,6 +17,7 @@ embed-resources: true
 
 library(tidyverse)
 library(readxl)
+library(gt)
 ```
 
 ```{r}
@@ -57,7 +58,8 @@ write_rds(dat2, "facs_times.rds")
 ```
 
 ```{r}
-dat2 |> 
+fig1df <- 
+  dat2 |> 
   pivot_longer(vis:auc, names_to = "type", values_to = "sec") |> 
   drop_na() |> 
   summarize(.by = c(wave, type), sec = sum(sec)) |> 
@@ -70,7 +72,17 @@ dat2 |>
       type == "vis" ~ "Other Occlusion"
     ),
     type = factor(type, levels = c("Other Occlusion", "Hat Occlusion", "AU0 Neutral", "Any Other AU"))
-  ) |> 
+  )
+
+fig1df |> 
+  mutate(.by = wave, pct = sec / sum(sec)) |> 
+  gt(groupname_col = "wave") |>
+  fmt_percent(columns = pct) |>
+  tab_options(row_group.as_column = TRUE)
+```
+
+```{r}
+fig1df |> 
   ggplot(aes(x = wave, y = sec, fill = type)) +
   geom_col(position = "fill", color = "black") +
   scale_fill_manual(values = c("grey30", "grey60", "white", "steelblue")) +
@@ -86,74 +98,3 @@ dat2 |>
   theme_bw(base_size = 10)
 ggsave(filename = "fig1.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
 ```
-
-```{r}
-dat2 |> 
-  pivot_longer(vis:auc, names_to = "type", values_to = "sec") |> 
-  drop_na() |> 
-  summarize(.by = c(wave, type), sec = sum(sec)) |> 
-  mutate(
-    wave = factor(wave),
-    type = case_when(
-      type == "auc" ~ "Any Other AU",
-      type == "neu" ~ "AU0 Neutral",
-      .default = NA_character_
-    ),
-    type = factor(type, levels = c("AU0 Neutral", "Any Other AU"))
-  ) |> 
-  drop_na() |> 
-  ggplot(aes(x = wave, y = sec, fill = type)) +
-  geom_col(position = "fill", color = "black") +
-  scale_fill_manual(values = c("white", "steelblue")) +
-  scale_y_continuous("proportion", labels = scales::percent) +
-  labs(title = "Frames with a Codeable Full Face")
-```
-
-```{r}
-dat |> 
-  select(
-    subject = id,
-    starts_with("facs_")
-  ) |> 
-  pivot_longer(-subject, names_prefix = "facs_") |> 
-  separate_wider_delim(name, delim = "_", names = c("target", "wave")) |>
-  pivot_wider(names_from = target, values_from = value) |> 
-  mutate(
-    sum = rowSums(pick(f1:f3), na.rm = TRUE),
-    match = near(sum, tot, tol = 1e-10)
-  )
-```
-
-```{r}
-dat |> 
-  select(
-    subject = id,
-    starts_with("facs_")
-  ) |> 
-  pivot_longer(-subject, names_prefix = "facs_") |> 
-  separate_wider_delim(name, delim = "_", names = c("target", "wave")) |> 
-  drop_na() |> 
-  filter(target != "tot") |> 
-  summarize(
-    .by = c(wave, target),
-    total_sec = sum(value)
-  ) |> 
-  mutate(wave = factor(parse_number(wave))) |> 
-  ggplot(aes(x = wave, y = total_sec, fill = target)) +
-  geom_col(position = "fill") +
-  scale_fill_manual(
-    values = c(
-      "c1" = "#bae4b3",
-      "c2" = "#74c476",
-      "c3" = "#238b45",
-      "f1" = "#fcae91",
-      "f2" = "#fb6a4a",
-      "f3" = "#cb181d",
-      "m1" = "#bdd7e7",
-      "m2" = "#6baed6",
-      "self" = "black"
-    )
-  ) +
-  scale_y_continuous("proportion", labels = scales::percent)
-```
-
