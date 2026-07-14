@@ -1,318 +1,501 @@
 ---
 title: "Emergent Facial Configurations"
 author: "Jeffrey Girard"
-date: "2026-06-12"
-format: 
+date: today
+format:
   html:
     page-layout: full
-    fig-width: 10
-    fig-format: png
+    toc: true
     fig-dpi: 300
+    df-print: paged
 embed-resources: true
 ---
 
-## Setup
+## Approach
+
+Each coded FACS event is one momentary configuration of one face. Recordings can
+contain multiple faces, coded separately by identity, so configurations from
+co-visible faces are counted separately and never merged. Exposure is
+duration-weighted person-time: two faces visible for one second contribute two
+face-seconds.
+
+Correspondence with hypothesized configurations follows the agreed plan:
+
+- **Metric**: Dice coefficient (`facs::compare_to_prototypes`), the match score
+  of Le Mau et al. Eq. 1.
+- **Unit**: one best-match Dice per configuration (max over all hypothesized
+  configurations, agnostic to emotion category). No summarizing within category.
+- **Bands**: Haidt & Keltner cutoffs (none <0.2, weak 0.2-0.4, moderate 0.4-0.7,
+  strong >=0.7), all reported.
+- **Assessability**: hypothesized configurations are reduced to the project
+  scheme. Those retaining no in-scheme AUs are *unassessable* and excluded from
+  scoring; those losing some AUs are *partially assessable* and flagged, because
+  matches against them are scored on a fragment of the hypothesis.
+- Reported both unweighted (per distinct configuration) and exposure-weighted.
 
 ```{r setup}
 #| message: false
-
 library(tidyverse)
 library(furrr)
 library(gt)
-library(facs) #remotes::install_github("jmgirard/facs")
+library(facs)
 library(datawizard)
-library(flexmix)
+```
 
-info <- 
+```{r params}
+band_breaks <- c(0, 0.2, 0.4, 0.7, 1.0)
+band_labels <- c("none (<0.2)", "weak (0.2-0.4)", "moderate (0.4-0.7)", "strong (>=0.7)")
+waves_included <- c(6, 9)
+core_cutoff <- 0.01   # >=1% of full-face time, for the core table
+```
+
+## Data
+
+```{r data}
+info <-
   left_join(
-    read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds"), 
-    read_rds("facs_times.rds"), 
+    read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds"),
+    read_rds("facs_times.rds"),
     by = c("subject", "wave")
-  ) |> 
-  filter(
-    !(subject == 18 & wave == 6),
-    wave %in% c(6, 9)
-  ) |> 
+  ) |>
+  filter(!(subject == 18 & wave == 6), wave %in% waves_included) |>
   mutate(
-    valid_session = session_duration - vis - hat,
-    valid_fullface = ffa - vis - hat
-  )
-facs <- 
-  read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |> 
-  left_join(info) |>
-  filter(
-    !(subject == 18 & wave == 6),
-    wave %in% c(6, 9)
+    valid_session  = session_duration - vis - hat,
+    valid_fullface = ffa - vis - hat        # includes neutral full-face time
   )
 
-project_scheme <- scheme(
-  list(
-    occurrence = c(1:2, 4:39),
-    intensity = c(1:2, 4:39),
-    asymmetry = c(1:2, 4:39)
-  )
-)
+facs <-
+  read_rds("/mnt/datasets/SEEDLingS/2_PROCESSED/facs_coding.rds") |>
+  left_join(info, by = c("subject", "wave")) |>
+  filter(!(subject == 18 & wave == 6), wave %in% waves_included)
 
-protos <- 
-  prototypes |> 
-  filter(is.na(emotion_type) | emotion_type != "compound") |> 
+project_scheme <- scheme(list(
+  occurrence = c(1:2, 4:39),
+  intensity  = c(1:2, 4:39),
+  asymmetry  = c(1:2, 4:39)
+))
+
+protos <-
+  prototypes |>
+  filter(is.na(emotion_type) | emotion_type != "compound") |>
   mutate(
-    emotion = if_else(emotion %in% c("anger", "angry"), "anger", emotion),
-    emotion = if_else(emotion %in% c("confused", "confusion"), "confusion", emotion),
-    emotion = if_else(emotion %in% c("desire", "desire food", "desire sex"), "desire", emotion),
-    emotion = if_else(emotion %in% c("disgust", "disgusted"), "disgust", emotion),
-    emotion = if_else(emotion %in% c("fear", "fearful"), "fear", emotion),
-    emotion = if_else(emotion %in% c("happy", "happiness", "joy"), "happiness", emotion),
-    emotion = if_else(emotion %in% c("sad", "sadness"), "sadness", emotion),
-    emotion = if_else(emotion %in% c("surprise", "surprised"), "surprise", emotion)
-  )
-```
-
-## Preprocessing for Mixture Modeling
-
-```{r}
-plan("multisession", workers = 9)
-
-bin_events <- function(df, bin_size) {
-  # Determine the range of bins
-  start_time <- min(df$session_onset)
-  end_time <- max(df$session_offset)
-  bins <- seq(start_time, end_time, by = bin_size)
-  
-  # Initialize output data frame
-  output <- data.frame(
-    bin_onset = bins[-length(bins)],
-    bin_offset = bins[-1]
-  )
-  
-  # Add columns for each possible number
-  for (num in project_scheme$occurrence) {
-    output[[paste0("AU", num)]] <- 0
-  }
-  
-  # Iterate through each bin and mark numbers present in overlapping events
-  for (i in seq_len(nrow(output))) {
-    bin_start <- output$bin_onset[i]
-    bin_end <- output$bin_offset[i]
-    
-    # Identify events overlapping this bin
-    overlapping_events <- df[df$facs_onset < bin_end & df$facs_offset > bin_start, ]
-    
-    # Mark numbers for this bin
-    for (event_label in overlapping_events$facs_code) {
-      numbers_in_event <- pull_numcodes(event_label)
-      output[i, paste0("AU", numbers_in_event)] <- 1
-    }
-  }
-  
-  return(output)
-}
-```
-
-```{r facs_bin}
-facs_bin <- 
-  facs |> 
-  nest(.by = c(subject, wave, month)) |> 
-  mutate(
-    binned = future_map(
-      data, 
-      \(x) x |> 
-        bin_events(bin_size = 1/10) |> 
-        filter(rowSums(pick(starts_with("AU"))) > 0)
+    emotion = case_when(
+      emotion %in% c("anger", "angry")                      ~ "anger",
+      emotion %in% c("confused", "confusion")               ~ "confusion",
+      emotion %in% c("desire", "desire food", "desire sex") ~ "desire",
+      emotion %in% c("disgust", "disgusted")                ~ "disgust",
+      emotion %in% c("fear", "fearful")                     ~ "fear",
+      emotion %in% c("happy", "happiness", "joy")           ~ "happiness",
+      emotion %in% c("sad", "sadness")                      ~ "sadness",
+      emotion %in% c("surprise", "surprised")               ~ "surprise",
+      .default = emotion
     )
   )
+
+total_session  <- sum(info$valid_session,  na.rm = TRUE)
+total_fullface <- sum(info$valid_fullface, na.rm = TRUE)
+n_infants      <- n_distinct(info$subject)
 ```
 
-```{r}
-facs_bin_long <- 
-  facs_bin |> 
-  select(-data) |> 
-  unnest(binned)
+## Assessability of hypothesized configurations
 
-facs_bin_prev <- 
-  facs_bin_long |> 
-  summarize(across(starts_with("AU"), mean)) |> 
-  pivot_longer(everything(), names_to = "AU", values_to = "Occurrence")
+Reports how many hypothesized configurations the coding scheme could evaluate.
+Needed before any claim that an emotion did or did not occur: an emotion whose
+configurations are all unassessable cannot appear in the results at all, and its
+absence would say nothing about infants' input.
 
-facs_bin_prev |> 
-  drop_na(Occurrence) |> 
-  arrange(desc(Occurrence)) |> 
+```{r assessability}
+proto_status <-
+  protos |>
+  mutate(
+    name     = paste(source, emotion, config_num, sep = "_"),
+    full_aus = map_int(code, \(x) length(pull_numcodes(x))),
+    kept_aus = map_int(code, \(x) length(intersect(pull_numcodes(x), project_scheme$occurrence))),
+    status   = case_when(
+      kept_aus == 0        ~ "unassessable",
+      kept_aus <  full_aus ~ "partial",
+      .default             = "complete"
+    )
+  ) |>
+  select(name, emotion, code, status, full_aus, kept_aus)
+
+# SUPPLEMENT TABLE S1: assessability of the hypothesized set
+tab_s1 <-
+  proto_status |>
+  summarize(.by = status, configs = n(), emotions = n_distinct(emotion)) |>
+  mutate(pct = configs / sum(configs)) |>
+  arrange(factor(status, levels = c("complete", "partial", "unassessable")))
+
+tab_s1 |>
   gt() |>
-  fmt_percent(columns = "Occurrence")
+  tab_header(title = "Table S1. Assessability of hypothesized configurations") |>
+  fmt_percent(columns = pct, decimals = 1) |>
+  cols_label(status = "Status", configs = "Configs", emotions = "Emotions",
+             pct = "% of configs")
 
-facs_inc <- 
-  facs_bin_prev |> 
-  filter(Occurrence >= 0.01, AU != "AU50") |> 
-  pull(AU) |> 
-  print()
+# Emotions that are ENTIRELY unassessable: these cannot occur by construction.
+emotions_lost <-
+  proto_status |>
+  summarize(.by = emotion,
+            all_unassessable = all(status == "unassessable"),
+            n_configs = n()) |>
+  filter(all_unassessable)
+
+cat("Emotions with no assessable configuration:",
+    if (nrow(emotions_lost)) paste(emotions_lost$emotion, collapse = ", ") else "none", "\n")
 ```
 
-## Mixture Modeling
+## Build configurations
 
-```{r step}
-outfile <- "sfm_1-10_r100.rds"
-if (file.exists(outfile)) {
-  sres <- read_rds(outfile)
-} else {
-  sres <- 
-    stepFlexmix(
-      formula = as.formula(paste("cbind(", paste(facs_inc, collapse = ", "), ") ~ 1")),
-      data = facs_bin_long |> select(starts_with("AU")),
-      model = FLXMCmvbinary(),
-      k = 1:10,
-      nrep = 100,
-      unique = TRUE
-    )
-  write_rds(sres, "sfm_1-10_r100.rds", compress = "gz")
-}
-
-ures <- unique(sres)
-
-ures_perf <- 
-  tibble(
-    k = ures@k,
-    AIC = map_dbl(ures@models, AIC),
-    BIC = map_dbl(ures@models, BIC),
-    ICL = map_dbl(ures@models, ICL)
-  )
-gt(ures_perf)
-
-ures_perf |> 
-  pivot_longer(-k, names_to = "stat", values_to = "value") |> 
-  ggplot(aes(x = k, y = value, color = stat, shape = stat)) +
-  geom_line(linewidth = 3/4) +
-  geom_point(size = 3) +
-  scale_x_continuous(breaks = 1:10) +
-  labs(
-    x = "Number of Mixture Components",
-    y = "Performance (lower is better)",
-    color = "Metric",
-    shape = "Metric"
-  ) +
-  theme_classic()
-```
-
-### Three-Cluster Model (Favored by ICL)
-
-```{r}
-fit <- ures@models[[3]]
-parameters(fit) |> 
-  as_tibble(rownames = "AU") |> 
-  pivot_longer(-AU, names_to = "Cluster", values_to = "Prob") |> 
-  mutate(
-    AU = str_remove(AU, "center."),
-    Cluster = str_remove(Cluster, "Comp."),
-    across(AU:Cluster, \(x) factor(parse_number(x))),
-    AU = fct_rev(AU),
-    ClusterAlpha = factor(
-      Cluster, 
-      labels = paste0(LETTERS[1:fit@k], " (", round(fit@size / sum(fit@size) * 100, 1), "%)")
-    ),
-    Prob_label = sprintf("%.2f", Prob),
-    Prob_color = ifelse(Prob > .8, "white", "black")
-  ) |> 
-  ggplot(aes(
-    x = ClusterAlpha, 
-    y = AU, 
-    fill = Prob, 
-    label = Prob_label
-  )) +
-  geom_tile(color = "grey") +
-  geom_text(aes(color = Prob_color)) +
-  scale_x_discrete(position = "top", expand = c(0, 0)) +
-  scale_y_discrete(expand = c(0, 0)) +
-  scale_color_identity() +
-  scale_fill_gradient(
-    low = "white", 
-    high = "#3182bd", 
-    limits = c(0, 1)
-  ) + 
-  guides(fill = guide_colorbar(
-    frame.colour = "black", 
-    ticks.colour = "black"
-  )) +
-  labs(
-    x = "Mixture Component (and Prevalence)", 
-    y = "Facial Action Unit (AU)", 
-    fill = "Probability"
-  ) +
-  theme_bw()
-
-ggsave("three-cluster.png", width = 6.5, height = 4.0, units = "in", dpi = 300)
-```
-
-## Observed Configurations
-
-```{r}
+```{r configs}
 plan("multisession", workers = 9)
-occ_counts <- 
-  facs |> 
-  select(-month) |> 
+
+occ_events <-
+  facs |>
   mutate(
-    occ = future_map_chr(facs_code, function(x) {
+    occ = future_map_chr(facs_code, \(x) {
       codes <- tidy(coding(x))[[1]]$occurrence
       paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
     }),
     occ = na_if(occ, ""),
-    occ = na_if(occ, "NA"),
-    occ = coding(occ)
-  )
-```
+    occ = na_if(occ, "NA")
+  ) |>
+  drop_na(occ, facs_identity, facs_duration) |>
+  filter(facs_duration > 0) |>
+  mutate(occ = coding(occ))
 
-```{r}
-obs_table <- 
-  occ_counts |> 
+obs_table <-
+  occ_events |>
   summarize(
     .by = occ,
-    n_subjects = n_distinct(subject),
-    n_events = n(),
-    duration = sum(facs_duration),
-    session_pct = duration / sum(info$valid_session),
-    fullface_pct = duration / sum(info$valid_fullface)
-  ) |> 
-  mutate(n_aus = str_count(occ, "\\+") + 1, .after = occ) |> 
-  arrange(desc(duration)) |> 
-  drop_na(occ) |>
-  #filter(fullface_pct >= 0.001) |> 
-  #mutate(fullface_pct = scales::percent(fullface_pct, accuracy = 0.01)) |> 
+    n_events   = n(),
+    n_subjects = n_distinct(subject),                        # infants
+    n_faces    = n_distinct(paste(subject, facs_identity)),  # individuals
+    duration   = sum(facs_duration)                          # person-time
+  ) |>
   mutate(
-    proto = compare_to_prototypes(
-      occ, 
-      scheme = project_scheme, 
-      proto = protos,
-      uncoded = "omit", 
-      output = "exact"
+    n_aus        = str_count(as.character(occ), "\\+") + 1,
+    session_pct  = duration / total_session,
+    fullface_pct = duration / total_fullface,
+    pct_events   = n_events / sum(n_events),
+    pct_time     = duration / sum(duration)   # share of expressive exposure
+  ) |>
+  arrange(desc(duration))
+
+total_exposure <- sum(obs_table$duration)
+
+cat("Events:", nrow(occ_events),
+    "| Distinct configurations:", nrow(obs_table),
+    "| Infants:", n_infants, "\n")
+```
+
+## Dice match scores
+
+```{r dice}
+scores <- compare_to_prototypes(
+  obs_table$occ,
+  scheme  = project_scheme,
+  proto   = protos,
+  uncoded = "omit",
+  output  = "all"
+)
+
+obs_table <-
+  obs_table |>
+  mutate(
+    best_dice = map_dbl(scores, \(s) if (length(s)) max(s, na.rm = TRUE) else NA_real_),
+    best_match = map2_chr(scores, best_dice, \(s, b) {
+      if (is.na(b) || b == 0) return(NA_character_)
+      hit <- names(s)[!is.na(s) & s == b]
+      ems <- unique(str_remove(str_remove(hit, "^[^_]+_"), "_[^_]+$"))
+      paste(sort(ems), collapse = ", ")
+    }),
+    # Is the best score achieved by any FULLY assessable hypothesized config?
+    best_status = map2_chr(scores, best_dice, \(s, b) {
+      if (is.na(b) || b == 0) return(NA_character_)
+      hit <- names(s)[!is.na(s) & s == b]
+      st  <- proto_status$status[match(hit, proto_status$name)]
+      if (any(st == "complete", na.rm = TRUE)) "complete" else "partial only"
+    }),
+    exact = !is.na(best_dice) & best_dice == 1,
+    band  = cut(best_dice, breaks = band_breaks, labels = band_labels,
+                include.lowest = TRUE, right = FALSE)
+  )
+```
+
+## FIGURE: match by configuration size and assessability
+
+```{r figure-match}
+#| fig-width: 6.5
+#| fig-height: 7.0
+
+fig_match <-
+  obs_table |>
+  filter(!is.na(best_dice), !is.na(best_status)) |>
+  mutate(
+    complexity = factor(
+      pmin(n_aus, 5),
+      levels = 1:5,
+      labels = c("1 AU", "2 AUs", "3 AUs", "4 AUs", "5+ AUs")
     ),
-    proto = map_chr(proto, \(x) str_c(names(x), collapse = "\n")),
-    cluster = map_chr(occ, \(x) {
-      aus <- paste0("AU", tidy(x)[[1]]$occurrence)
-      mat <- matrix(0, nrow = 1, ncol = length(facs_inc), dimnames = list(1, facs_inc))
-      if (!all(aus %in% facs_inc)) { return(NA_character_) }
-      mat[1, aus] <- 1
-      cluster <- which.max(posterior(fit, newdata = as.data.frame(mat)))
-      LETTERS[cluster]
-    })
+    best_status = factor(
+      best_status,
+      levels = c("complete", "partial only"),
+      labels = c("Fully assessable", "Partially assessable")
+    )
+  ) |>
+  summarize(.by = c(best_dice, complexity, best_status), w = sum(duration)) |>
+  mutate(p = w / total_exposure) |>
+  ggplot(aes(x = best_dice, y = p)) +
+  geom_vline(xintercept = 0.7, linetype = "dashed", color = "darkorange2") +
+  geom_segment(aes(xend = best_dice, yend = 0), linewidth = 0.6) +
+  geom_point(aes(shape = best_status), size = 1.8, fill = "white",
+             show.legend = FALSE, stroke = 1) +
+  scale_shape_manual(values = c(16, 21)) +
+  facet_grid(complexity ~ best_status) +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(ylim = c(0, 0.175)) +
+  labs(x = "Best-match Dice coefficient",
+       y = "Share of infants' facial exposure (person-time)") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank())
+
+fig_match
+ggsave("fig_match.png", fig_match, width = 6.5, height = 7.0, dpi = 300)
+```
+
+## MAIN TABLE: core configurations
+
+```{r table-core}
+tab_core <-
+  obs_table |>
+  filter(fullface_pct >= core_cutoff) |>
+  transmute(
+    occ = as.character(occ), n_aus, n_events, n_subjects, n_faces,
+    duration, fullface_pct, session_pct, best_dice,
+    best_match = coalesce(best_match, "\u2014")
   )
 
-describe_distribution(obs_table, select = c("n_aus", "n_subjects", "n_events", "duration", "session_pct", "fullface_pct"))
+tail_row <-
+  obs_table |>
+  filter(fullface_pct < core_cutoff) |>
+  summarize(
+    occ = sprintf("Remaining %d configurations (each <1%%)", n()),
+    n_aus = NA_real_, n_events = sum(n_events),
+    n_subjects = NA_integer_, n_faces = NA_integer_,
+    duration = sum(duration),
+    fullface_pct = sum(duration) / total_fullface,
+    session_pct = sum(duration) / total_session,
+    best_dice = NA_real_, best_match = ""
+  )
 
-write_csv(obs_table, "obs_table.csv")
+bind_rows(tab_core, tail_row) |>
+  gt() |>
+  tab_header(
+    title = "Emergent facial configurations in infants' visual input",
+    subtitle = sprintf("Configurations occupying >=1%% of full-face time (%d of %d)",
+                       nrow(tab_core), nrow(obs_table))
+  ) |>
+  fmt_number(columns = c(duration, best_dice), decimals = 2) |>
+  fmt_percent(columns = c(fullface_pct, session_pct), decimals = 2) |>
+  fmt_integer(columns = c(n_aus, n_events, n_subjects, n_faces)) |>
+  sub_missing(missing_text = "\u2014") |>
+  cols_label(
+    occ = "AUs", n_aus = "#AU", n_events = "Events",
+    n_subjects = paste0("# Infants (of ", n_infants, ")"),
+    n_faces = "# Individuals", duration = "Duration (s)",
+    fullface_pct = "% Full-face time", session_pct = "% Session time",
+    best_dice = "Best Dice", best_match = "Best-matching emotion(s)"
+  ) |>
+  tab_source_note(md(
+    "Duration is person-time; co-visible faces contribute independently. *# Individuals* is distinct infant-by-identity combinations. *Best-matching emotion(s)* lists every emotion achieving the best Dice; a configuration matching several reflects overlap among the hypothesized sets and these are not additive."
+  ))
+```
+
+## MAIN TABLE: match distribution
+
+```{r table-bands}
+tab_bands <-
+  obs_table |>
+  filter(!is.na(band)) |>
+  summarize(.by = band, configs = n(), events = sum(n_events), seconds = sum(duration)) |>
+  mutate(
+    band         = factor(as.character(band),
+                          levels = c(band_labels, "no configuration coded")),
+    pct_configs  = configs / sum(configs),
+    pct_fullface = seconds / total_fullface,
+    pct_session  = seconds / total_session
+  )
+
+neutral_seconds <- total_fullface - sum(obs_table$duration)
+
+neutral_row <- tibble(
+  band         = factor("no configuration coded",
+                        levels = c(band_labels, "no configuration coded")),
+  configs      = NA_integer_,
+  events       = NA_integer_,
+  seconds      = neutral_seconds,
+  pct_configs  = NA_real_,
+  pct_fullface = neutral_seconds / total_fullface,
+  pct_session  = neutral_seconds / total_session
+)
+
+bind_rows(tab_bands, neutral_row) |>
+  arrange(band) |>
+  gt() |>
+  tab_header(
+    title = "Match to hypothesized configurations",
+    subtitle = "Best-match Dice per configuration, by Haidt & Keltner band"
+  ) |>
+  fmt_number(columns = seconds, decimals = 1) |>
+  fmt_percent(columns = c(pct_configs, pct_fullface, pct_session), decimals = 1) |>
+  sub_missing(missing_text = "\u2014") |>
+  cols_label(
+    band = "Band",
+    configs = "Configs",
+    events = "Events",
+    seconds = "Seconds",
+    pct_configs = "% of configs (unweighted)",
+    pct_fullface = "% of full-face time",
+    pct_session = "% of session time"
+  ) |>
+  tab_source_note(md(
+    "Session percentages do not sum to 100%: the remainder is time with no fully visible face."
+  ))
+```
+
+## IN-TEXT NUMBERS
+
+Everything the results paragraphs need, printed once so nothing is transcribed
+by hand.
+
+```{r in-text}
+list(
+  n_events            = nrow(occ_events),
+  n_configs           = nrow(obs_table),
+  n_infants           = n_infants,
+  # concentration
+  n_core              = sum(obs_table$fullface_pct >= core_cutoff),
+  core_pct_time       = sum(obs_table$duration[obs_table$fullface_pct >= core_cutoff]) / total_exposure,
+  # expressiveness: how much available face time was expressive at all
+  expressive_pct_fullface = total_exposure / total_fullface,
+  expressive_pct_session  = total_exposure / total_session,
+  # spread
+  pct_configs_one_infant  = mean(obs_table$n_subjects == 1),
+  median_infants          = median(obs_table$n_subjects),
+  # exact matches
+  exact_configs       = sum(obs_table$exact, na.rm = TRUE),
+  exact_pct_configs   = mean(obs_table$exact, na.rm = TRUE),
+  exact_pct_time      = sum(obs_table$duration[obs_table$exact], na.rm = TRUE) / total_exposure,
+  # assessability of the matches
+  partial_only_pct_time = sum(obs_table$duration[obs_table$best_status == "partial only"], na.rm = TRUE) / total_exposure
+) |>
+  enframe(name = "quantity", value = "value") |>
+  mutate(value = map_chr(value, \(x) format(unlist(x), digits = 3))) |>
+  print(n = Inf)
+
+describe_distribution(obs_table, select = "best_dice")
+```
+
+```{r in-text-complexity}
+# The complexity gradient: the figure's punchline as a number.
+obs_table |>
+  filter(!is.na(best_dice)) |>
+  summarize(
+    .by = n_aus,
+    configs = n(),
+    seconds = sum(duration),
+    exact_seconds = sum(duration[exact])
+  ) |>
+  mutate(
+    pct_of_exposure = seconds / total_exposure,
+    pct_of_exact    = exact_seconds / sum(exact_seconds)
+  ) |>
+  arrange(n_aus) |>
+  gt() |>
+  tab_header(title = "Exposure and exact matches by configuration size") |>
+  fmt_number(columns = c(seconds, exact_seconds), decimals = 1) |>
+  fmt_percent(columns = c(pct_of_exposure, pct_of_exact), decimals = 1) |>
+  cols_label(n_aus = "AUs in config", configs = "Configs", seconds = "Seconds",
+             exact_seconds = "Exact-match sec", pct_of_exposure = "% exposure",
+             pct_of_exact = "% of exact-match time")
 ```
 
 ```{r}
-obs_table |> 
-  filter(fullface_pct >= 0.01) |> 
-  gt() |> 
-  fmt_number(
-    columns = "duration",
-    decimals = 1
-  ) |> 
-  fmt_percent(
-    columns = c("session_pct", "fullface_pct")
-  ) |> 
-  tab_options(
-    container.height = px(500),
-    container.overflow.y = TRUE
-  )
+#| output: asis
+tk <- list(
+  n_configs   = nrow(obs_table),
+  n_core      = sum(obs_table$fullface_pct >= core_cutoff),
+  core_time   = sum(obs_table$duration[obs_table$fullface_pct >= core_cutoff]) / total_exposure,
+  expressive  = total_exposure / total_fullface,
+  one_infant  = mean(obs_table$n_subjects == 1),
+  exact_time  = sum(obs_table$duration[obs_table$exact], na.rm = TRUE) / total_exposure,
+  small_exact = sum(obs_table$duration[obs_table$exact & obs_table$n_aus <= 2], na.rm = TRUE) /
+                sum(obs_table$duration[obs_table$exact], na.rm = TRUE),
+  big_time    = sum(obs_table$duration[obs_table$n_aus >= 5]) / total_exposure
+)
+
+cat(sprintf(
+"## Key takeaways
+
+1. **Faces are usually still.** Only %.1f%% of full-face time had any coded AU activity.
+2. **A few configurations dominate.** %d configurations (of %d) each occupy >=1%% of full-face time and together account for %.1f%% of expressive exposure.
+3. **The tail is idiosyncratic.** %.0f%% of configurations occurred in only one infant's input.
+4. **Matches are common but simple.** %.1f%% of expressive exposure exactly matches a hypothesized configuration, but %.0f%% of that exact-match time is configurations of one or two AUs.
+5. **Elaborate configurations are near-absent.** Configurations of 5+ AUs account for %.1f%% of expressive exposure, so the multi-AU configs typically depicted in the emotion literature are very rare in infants' input.
+",
+  100 * tk$expressive, tk$n_core, tk$n_configs, 100 * tk$core_time,
+  100 * tk$one_infant, 100 * tk$exact_time, 100 * tk$small_exact, 100 * tk$big_time
+))
 ```
 
+
+## SUPPLEMENT
+
+```{r supplement}
+# S2: full catalogue (all configurations)
+obs_table |>
+  transmute(occ = as.character(occ), n_aus, n_events, n_subjects, n_faces,
+            duration, fullface_pct, session_pct, best_dice, best_status,
+            best_match, band) |>
+  write_csv("supp_S2_full_catalogue.csv")
+
+# S3: every exact match, with the size of the config and its matched emotions
+obs_table |>
+  filter(exact) |>
+  arrange(desc(duration)) |>
+  transmute(occ = as.character(occ), n_aus, n_events, duration,
+            fullface_pct, n_subjects, best_status, best_match) |>
+  write_csv("supp_S3_exact_matches.csv")
+
+# S4: assessability detail, per hypothesized configuration
+proto_status |>
+  transmute(name, emotion, code = as.character(code), full_aus, kept_aus, status) |>
+  write_csv("supp_S4_assessability.csv")
+
+write_rds(obs_table, "obs_table.rds")
+```
+
+## What goes where
+
+**Main text figure**: `fig_match.png`. Best-match Dice by configuration size and
+assessability. Caption must state that heights are shares of *total* facial
+exposure across all ten panels (so columns do not each sum to 100%), and define
+assessability.
+
+**Main text tables**: core configurations, and the band distribution.
+
+**In text, not tabled**: total configurations; the fraction of available
+full-face time that was expressive at all (this is the "faces are mostly doing
+nothing" point); the spread numbers; the exact-match rate; and the complexity
+gradient (single- and two-AU configurations account for most exact-match time,
+while 5+ AU configurations are near-absent).
+
+**Supplement**: S1 assessability summary, S2 full catalogue, S3 exact matches,
+S4 per-configuration assessability.
+
+**Deliberately not reported**: per-emotion occurrence counts. Configurations
+match multiple emotions because the hypothesized sets overlap, so per-emotion
+counts are not additive and invite misreading. Emotion labels appear only as a
+descriptive column in the core table.
