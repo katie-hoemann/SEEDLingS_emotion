@@ -247,7 +247,7 @@ fig_match <-
   summarize(.by = c(best_dice, complexity, best_status), w = sum(duration)) |>
   mutate(p = w / total_exposure) |>
   ggplot(aes(x = best_dice, y = p)) +
-  geom_vline(xintercept = 0.7, linetype = "dashed", color = "darkorange2") +
+  geom_vline(xintercept = c(0.2, 0.4, 0.7), linetype = "dashed", color = "darkorange2") +
   geom_segment(aes(xend = best_dice, yend = 0), linewidth = 0.6) +
   geom_point(aes(shape = best_status), size = 1.8, fill = "white",
              show.legend = FALSE, stroke = 1) +
