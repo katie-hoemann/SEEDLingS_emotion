@@ -39,6 +39,7 @@ library(furrr)
 library(gt)
 library(facs)
 library(easystats)
+library(patchwork)
 ```
 
 ## Data
@@ -275,44 +276,67 @@ emotion_phase |>
   ))
 ```
 
-## FIGURE (Phase I)
+## FIGURE
 
-```{r figure-phase1}
+```{r figure-hep}
 #| fig-width: 6.5
-#| fig-height: 5
+#| fig-height: 5.0
 
-ff_i  <- phase_totals$valid_fullface[phase_totals$phase == "I"]
-ss_i  <- phase_totals$valid_session[phase_totals$phase == "I"]
-ratio <- ff_i / ss_i
+# Emotion order fixed across both panels, by max exposure, so rows line up.
+emotion_order <-
+  emotion_phase |>
+  summarize(.by = emotion, m = max(fullface_pct)) |>
+  arrange(m) |>
+  pull(emotion) |>
+  str_to_title()
 
 primary_breaks <- seq(0, 0.15, by = 0.05)
 
-fig_hep <-
-  emotion_phase |>
-  filter(phase == "I") |>
-  mutate(emotion = fct_reorder(str_to_title(emotion), fullface_pct)) |>
-  ggplot(aes(x = fullface_pct, y = emotion)) +
-  geom_segment(aes(xend = 0, yend = emotion), color = "grey60", linewidth = 0.5) +
-  geom_point(size = 2.2) +
-  scale_x_continuous(
-    name   = "Share of full-face time (person-time)",
-    breaks = primary_breaks,
-    labels = scales::percent,
-    sec.axis = sec_axis(
-      transform = ~ .x * ratio,
-      name   = "Share of session time",
-      breaks = primary_breaks * ratio,
-      labels = scales::label_percent(accuracy = 0.01)
+# One panel per phase, each with its OWN exact full-face -> session ratio.
+hep_panel <- function(ph, color, show_y) {
+  d  <- emotion_phase |> filter(phase == ph) |>
+    mutate(emotion = factor(str_to_title(emotion), levels = emotion_order))
+  tot <- phase_totals |> filter(phase == ph)
+  ratio <- tot$valid_fullface / tot$valid_session
+
+  brk <- scales::breaks_pretty(n = 4)(c(0, max(d$fullface_pct, na.rm = TRUE)))
+  brk <- brk[brk >= 0]                       
+
+  ggplot(d, aes(x = fullface_pct, y = emotion)) +
+    geom_segment(aes(xend = 0, yend = emotion), color = "grey75", linewidth = 0.5) +
+    geom_point(size = 2.4, color = color) +
+    scale_x_continuous(
+      name   = "Share of full-face time",
+      breaks = brk,
+      labels = scales::percent,
+      sec.axis = sec_axis(
+        transform = ~ .x * ratio,
+        name   = "Share of session time",
+        breaks = brk * ratio,
+        labels = scales::label_percent(accuracy = 0.01)
+      )
+    ) +
+    labs(y = NULL, title = c("I" = "Phase I (6-11 mo)",
+                             "II" = "Phase II (12-17 mo)")[[ph]]) +
+    theme_bw() +
+    theme(
+      plot.title = element_text(face = "bold", size = 14, hjust = 0.5,
+                                margin = margin(b = 8)),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.y = if (show_y) element_text() else element_blank(),
+      axis.ticks.y = if (show_y) element_line() else element_blank()
     )
-  ) +
-  labs(y = NULL) +
-  theme_bw() +
-  theme(
-    panel.grid.major.y = element_blank()
-  )
+}
+
+fig_hep <-
+  hep_panel("I",  "#1b9e77", show_y = TRUE) +
+  hep_panel("II", "#d95f02", show_y = FALSE) +
+  plot_layout(nrow = 1) &
+  theme(plot.margin = margin(t = 5, r = 12, b = 5, l = 5))
 
 fig_hep
-ggsave("fig_hep_phase1.png", fig_hep, width = 6.5, height = 5, dpi = 300)
+ggsave("fig_hep.png", fig_hep, width = 6.5, height = 5.0, dpi = 300)
 ```
 
 ## IN-TEXT NUMBERS (Phase I)
@@ -415,29 +439,6 @@ emotion_phase |>
     infants_any = paste0("# Infants (of ", n_inf_ii, ")"),
     top_infant_share = "Largest infant's share"
   )
-```
-
-```{r supp-phase-compare}
-#| fig-width: 7
-#| fig-height: 5
-
-# Both phases side by side, for reference only. Not a test of change over time:
-# the recording setup differs between phases.
-emotion_phase |>
-  mutate(
-    phase = factor(phase, levels = c("I", "II"),
-                   labels = c("Phase I (6, 9 mo)", "Phase II (12, 15 mo)")),
-    emotion = fct_reorder(str_to_title(emotion), fullface_pct, .fun = max)
-  ) |>
-  ggplot(aes(x = fullface_pct, y = emotion, shape = phase)) +
-  geom_line(aes(group = emotion), color = "grey75", linewidth = 2/3) +
-  geom_point(size = 2, fill = "white", stroke = 1) +
-  scale_shape_manual(values = c(16, 21)) +
-  scale_x_continuous(labels = scales::percent) +
-  labs(x = "Share of full-face time (person-time)", y = NULL, shape = NULL,
-       caption = "Descriptive only: the recording setup differs between phases.") +
-  theme_bw() +
-  theme(legend.position = "top", panel.grid.minor = element_blank())
 ```
 
 ### S2. Spread across infants
