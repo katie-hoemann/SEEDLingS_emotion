@@ -17,20 +17,14 @@ embed-resources: true
   Recordings contain multiple faces, coded separately by identity.
 - **Exposure**: duration-weighted **person-time**. Overlapping events are merged
   *within* a face (a face cannot double-count itself), then summed *across*
-  faces (two co-visible faces contribute independently). The previous version
-  merged across faces, taking the wall-clock union, which undercounted exposure
-  whenever two people were visible at once.
+  faces (two co-visible faces contribute independently).
 - **Denominators**: valid full-face time (which includes time a face was visible
-  but no AU was coded) and valid session time. Never the share of expressive
-  time, which would make faces appear more expressive than they are.
+  but no AU was coded) and valid session time.
 - **Assessability**: hypothesized configurations are reduced to the project
   scheme. Those retaining no in-scheme AUs are *unassessable* and cannot occur
-  by construction; those losing some AUs are *partially assessable*, and matches
-  against them are scored on a fragment of the hypothesis.
-- **Phases are never pooled.** Phase I (waves 6, 9) is the main analysis and is
-  the window the emergent analysis also covers. Phase II (waves 12, 15) is
-  reported in the supplement, where the caregiver-worn camera makes the two
-  windows less comparable.
+  by construction; those losing some AUs are *partially assessable*.
+- **Phases are never pooled.** Phase I (waves 6, 9) is the main analysis. Phase
+  II (waves 12, 15) is reported in the supplement.
 
 ```{r setup}
 #| message: false
@@ -66,6 +60,9 @@ facs <-
   filter(facs_duration > 0) |>
   # identity belongs in the event key: facs_id may restart per face
   mutate(event_id = str_c(subject, wave, facs_identity, facs_id, sep = "_"))
+
+# event_id must uniquely identify an event
+stopifnot(n_distinct(facs$event_id) == nrow(facs))
 
 project_scheme <- scheme(list(
   occurrence = c(1:2, 4:39),
@@ -105,11 +102,17 @@ phase_totals
 
 ## Assessability of the hypothesized set
 
-An emotion whose configurations all fall outside the coding scheme cannot occur
-in these data. Reporting it as absent would describe our scheme, not infants'
-input, so these are excluded rather than reported as zero.
-
 ```{r assessability}
+# Canonical AU-set key: sorted, de-duplicated integer AUs joined by "+".
+# Used for ALL matching, so joins compare plain strings rather than fcs_cdng
+# objects (which need not compare equal even for identical AU sets).
+canon_code <- function(x) {
+  map_chr(x, \(code) {
+    aus <- sort(unique(pull_numcodes(code)))
+    if (length(aus)) paste(aus, collapse = "+") else NA_character_
+  })
+}
+
 proto_status <-
   protos |>
   mutate(
@@ -146,11 +149,13 @@ emotions_lost <-
 cat("Emotions with no assessable configuration:",
     if (length(emotions_lost)) paste(emotions_lost, collapse = ", ") else "none", "\n")
 
+# Assessable hypothesized configurations, keyed by canonical reduced AU set.
+# `reduced` is already a canonical string (sorted, "+"-joined), so it is the key.
 protos_assessable <-
   proto_status |>
   filter(status != "unassessable") |>
   distinct(emotion, reduced, status) |>
-  mutate(occ = coding(reduced))
+  rename(occ_key = reduced)
 ```
 
 ## Observed configurations
@@ -161,24 +166,32 @@ plan("multisession", workers = 9)
 occ_events <-
   facs |>
   mutate(
-    occ = future_map_chr(facs_code, \(x) {
+    occ_key = future_map_chr(facs_code, \(x) {
       codes <- tidy(coding(x))[[1]]$occurrence
-      paste(codes[codes %in% project_scheme$occurrence], collapse = "+")
-    }),
-    occ = na_if(occ, ""),
-    occ = na_if(occ, "NA")
+      keep  <- sort(codes[codes %in% project_scheme$occurrence])
+      if (length(keep)) paste(keep, collapse = "+") else NA_character_
+    })
   ) |>
-  drop_na(occ) |>
-  mutate(occ = coding(occ))
+  drop_na(occ_key)
 
 occ_events |> count(phase, name = "events")
+```
+
+```{r join-check}
+# Confirm the string join recovers matches. If this is 0, no assessable
+# configuration ever occurred; otherwise it is the number of matched event rows.
+n_matched <-
+  occ_events |>
+  semi_join(protos_assessable, by = "occ_key") |>
+  nrow()
+
+cat("Event rows matching any assessable hypothesized configuration:", n_matched, "\n")
 ```
 
 ## Exposure (person-time)
 
 ```{r exposure}
-# Merge overlapping events WITHIN a face, then sum ACROSS faces. Including
-# facs_identity in the keys is what prevents a wall-clock union across people.
+# Merge overlapping events WITHIN a face, then sum ACROSS faces.
 merge_within_face <- function(df, keys) {
   df |>
     arrange(across(all_of(keys)), facs_onset) |>
@@ -200,8 +213,8 @@ merge_within_face <- function(df, keys) {
 emotion_events <-
   occ_events |>
   inner_join(
-    protos_assessable |> select(emotion, occ),
-    by = join_by(occ),
+    protos_assessable |> select(emotion, occ_key),
+    by = "occ_key",
     relationship = "many-to-many"
   ) |>
   # an event may match several variants of one emotion: count it once per emotion
@@ -227,20 +240,25 @@ emotion_long <-
     session_pct  = duration / valid_session
   )
 
-# phase-level summary, with spread across infants
-emotion_phase <-
+# Collapse subject-waves to subject-within-phase BEFORE counting infants, so a
+# subject exposed in both waves is not counted twice (this was inflating the
+# infant counts above the sample size).
+emotion_subject_phase <-
   emotion_long |>
+  summarize(.by = c(phase, subject, emotion), duration = sum(duration))
+
+emotion_phase <-
+  emotion_subject_phase |>
   summarize(
     .by = c(phase, emotion),
     seconds        = sum(duration),
-    infants_any    = sum(duration > 0),                 # infants with any exposure
-    max_infant_sec = max(duration),                     # largest single contributor
+    infants_any    = n_distinct(subject[duration > 0]),  # distinct infants
+    max_infant_sec = max(duration)                       # largest infant (summed over waves)
   ) |>
   left_join(phase_totals, by = "phase") |>
   mutate(
     fullface_pct = seconds / valid_fullface,
     session_pct  = seconds / valid_session,
-    # concentration: what share of this emotion's exposure comes from one infant
     top_infant_share = if_else(seconds > 0, max_infant_sec / seconds, NA_real_)
   )
 ```
@@ -276,13 +294,13 @@ emotion_phase |>
   ))
 ```
 
-## FIGURE
+## FIGURE: exposure by emotion and phase
 
 ```{r figure-hep}
 #| fig-width: 6.5
-#| fig-height: 5.0
+#| fig-height: 5.5
 
-# Emotion order fixed across both panels, by max exposure, so rows line up.
+# Emotion order fixed across panels, by max exposure across phases.
 emotion_order <-
   emotion_phase |>
   summarize(.by = emotion, m = max(fullface_pct)) |>
@@ -290,17 +308,17 @@ emotion_order <-
   pull(emotion) |>
   str_to_title()
 
-primary_breaks <- seq(0, 0.15, by = 0.05)
-
-# One panel per phase, each with its OWN exact full-face -> session ratio.
+# One panel per phase, each with its own exact full-face -> session ratio and
+# its own ~4 round breaks.
 hep_panel <- function(ph, color, show_y) {
-  d  <- emotion_phase |> filter(phase == ph) |>
+  d   <- emotion_phase |> filter(phase == ph) |>
     mutate(emotion = factor(str_to_title(emotion), levels = emotion_order))
   tot <- phase_totals |> filter(phase == ph)
   ratio <- tot$valid_fullface / tot$valid_session
 
-  brk <- scales::breaks_pretty(n = 4)(c(0, max(d$fullface_pct, na.rm = TRUE)))
-  brk <- brk[brk >= 0]                       
+  top  <- max(d$fullface_pct, na.rm = TRUE)
+  step <- signif(top / 3, 1)
+  brk  <- seq(0, ceiling(top / step) * step, by = step)
 
   ggplot(d, aes(x = fullface_pct, y = emotion)) +
     geom_segment(aes(xend = 0, yend = emotion), color = "grey75", linewidth = 0.5) +
@@ -311,7 +329,7 @@ hep_panel <- function(ph, color, show_y) {
       labels = scales::percent,
       sec.axis = sec_axis(
         transform = ~ .x * ratio,
-        name   = "Share of session time",
+        name   = if (ph == "I") "Share of session time" else NULL,
         breaks = brk * ratio,
         labels = scales::label_percent(accuracy = 0.01)
       )
@@ -320,11 +338,10 @@ hep_panel <- function(ph, color, show_y) {
                              "II" = "Phase II (12-17 mo)")[[ph]]) +
     theme_bw() +
     theme(
-      plot.title = element_text(face = "bold", size = 14, hjust = 0.5,
-                                margin = margin(b = 8)),
+      plot.title = element_text(face = "bold", size = 13, margin = margin(b = 8)),
       panel.grid.major.y = element_blank(),
       panel.grid.minor = element_blank(),
-      axis.text.y = if (show_y) element_text() else element_blank(),
+      axis.text.y  = if (show_y) element_text() else element_blank(),
       axis.ticks.y = if (show_y) element_line() else element_blank()
     )
 }
@@ -336,7 +353,7 @@ fig_hep <-
   theme(plot.margin = margin(t = 5, r = 12, b = 5, l = 5))
 
 fig_hep
-ggsave("fig_hep.png", fig_hep, width = 6.5, height = 5.0, dpi = 300)
+ggsave("fig_hep.png", fig_hep, width = 6.5, height = 5.5, dpi = 300)
 ```
 
 ## IN-TEXT NUMBERS (Phase I)
@@ -348,7 +365,7 @@ report as a total.
 ```{r in-text}
 any_hep <-
   occ_events |>
-  semi_join(protos_assessable |> select(occ), by = join_by(occ)) |>
+  semi_join(protos_assessable, by = "occ_key") |>
   merge_within_face(keys = c("subject", "wave", "phase", "facs_identity")) |>
   summarize(.by = phase, seconds = sum(duration)) |>
   left_join(phase_totals, by = "phase") |>
@@ -364,7 +381,6 @@ any_hep |>
   fmt_percent(columns = c(pct_fullface, pct_session), decimals = 2) |>
   cols_label(phase = "Phase", seconds = "Seconds",
              valid_fullface = "Full-face sec", valid_session = "Session sec",
-             n_infants = "# Infants",
              pct_fullface = "% Full-face", pct_session = "% Session")
 
 list(
@@ -416,10 +432,6 @@ cat(sprintf(
 
 ### S1. Phase II
 
-Reported separately, never pooled with Phase I. The caregiver-worn camera in
-waves 12 and 15 changes what the infant's view contains, so the two phases are
-not directly comparable.
-
 ```{r supp-phase2}
 n_inf_ii <- phase_totals$n_infants[phase_totals$phase == "II"]
 
@@ -443,21 +455,33 @@ emotion_phase |>
 
 ### S2. Spread across infants
 
-Is an emotion's exposure spread across the sample or driven by a few infants?
-
 ```{r supp-spread}
 #| fig-width: 7
 #| fig-height: 5
 
-emotion_long |>
+# One point per infant-within-phase with non-zero exposure (Phase I),
+# using the subject-level collapse so an infant is a single point.
+emotion_subject_phase |>
   filter(phase == "I", duration > 0) |>
-  mutate(emotion = fct_reorder(str_to_title(emotion), fullface_pct, .fun = median)) |>
-  ggplot(aes(x = fullface_pct, y = emotion)) +
+  left_join(
+    info |> distinct(subject, phase) |>
+      left_join(
+        info |> summarize(.by = c(subject, phase),
+                          ff = sum(valid_fullface, na.rm = TRUE)),
+        by = c("subject", "phase")
+      ),
+    by = c("subject", "phase")
+  ) |>
+  mutate(
+    infant_pct = duration / ff,
+    emotion = fct_reorder(str_to_title(emotion), infant_pct, .fun = median)
+  ) |>
+  ggplot(aes(x = infant_pct, y = emotion)) +
   geom_point(alpha = 0.5, size = 1.6,
              position = position_jitter(height = 0.15, width = 0)) +
   scale_x_continuous(labels = scales::percent) +
   labs(x = "Share of that infant's full-face time", y = NULL,
-       caption = "One point per infant-wave with non-zero exposure (Phase I).") +
+       caption = "One point per infant with non-zero exposure (Phase I).") +
   theme_bw() +
   theme(panel.grid.minor = element_blank())
 ```
@@ -474,18 +498,30 @@ emotion_long |>
   write_csv("supp_hep_S2_by_infant.csv")
 
 occ_events |>
-  inner_join(protos_assessable |> select(emotion, occ, status),
-             by = join_by(occ), relationship = "many-to-many") |>
+  inner_join(protos_assessable |> select(emotion, occ_key, status),
+             by = "occ_key", relationship = "many-to-many") |>
   summarize(
-    .by = c(phase, occ, emotion, status),
+    .by = c(phase, occ_key, emotion, status),
     n_events  = n_distinct(event_id),
     seconds   = sum(facs_duration),
     n_infants = n_distinct(subject)
   ) |>
   arrange(phase, desc(seconds)) |>
-  mutate(occ = as.character(occ)) |>
   write_csv("supp_hep_S3_matching_configs.csv")
 
 write_rds(emotion_long,  "emotion_long.rds")
 write_rds(emotion_phase, "emotion_phase.rds")
 ```
+
+## Notes
+
+- **Matching is on a canonical AU-set string (`occ_key`), not on `fcs_cdng`
+  objects.** Joining coding objects can silently miss matches, since two objects
+  with the same AUs need not compare equal. The `join-check` chunk reports the
+  matched-row count so this can be verified.
+- **Infant counts are computed after collapsing subject-waves to
+  subject-within-phase**, so a subject exposed in both waves of a phase is
+  counted once. Previously they were counted per subject-wave, which pushed
+  counts above the sample size.
+- **Emotion totals are not additive** (one configuration can match several
+  emotions); the union in the in-text chunk is the honest total.
