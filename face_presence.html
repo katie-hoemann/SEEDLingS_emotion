@@ -252,49 +252,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="main-table-face-presence-by-age-window" class="level2">
 <h2 class="anchored" data-anchor-id="main-table-face-presence-by-age-window">MAIN TABLE: face presence by age window</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  df_part <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(pct_part) <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">.by =</span> wave, <span class="at">n =</span> <span class="fu">n</span>(),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">Mean =</span> <span class="fu">mean</span>(pct_part), <span class="at">SD =</span> <span class="fu">sd</span>(pct_part),</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">Median =</span> <span class="fu">median</span>(pct_part), <span class="at">MAD =</span> <span class="fu">mad</span>(pct_part)) <span class="sc">|&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Measure =</span> <span class="st">"Partial face"</span>),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  df_full <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(pct_full) <span class="sc">|&gt;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">.by =</span> wave, <span class="at">n =</span> <span class="fu">n</span>(),</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">Mean =</span> <span class="fu">mean</span>(pct_full), <span class="at">SD =</span> <span class="fu">sd</span>(pct_full),</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">Median =</span> <span class="fu">median</span>(pct_full), <span class="at">MAD =</span> <span class="fu">mad</span>(pct_full)) <span class="sc">|&gt;</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Measure =</span> <span class="st">"Full face"</span>)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Window =</span> <span class="fu">factor</span>(wave, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>, <span class="dv">15</span>),</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"6-8 mo"</span>, <span class="st">"9-11 mo"</span>, <span class="st">"12-14 mo"</span>, <span class="st">"15-17 mo"</span>))</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Measure, Window, n, Mean, SD, Median, MAD) <span class="sc">|&gt;</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Measure), Window) <span class="sc">|&gt;</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>(<span class="at">groupname_col =</span> <span class="st">"Measure"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Face presence in infants' recorded day"</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Share of session duration with a face visible"</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_percent</span>(<span class="at">columns =</span> <span class="fu">c</span>(Mean, SD, Median, MAD), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(<span class="at">row_group.as_column =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>summ <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">n =</span> <span class="fu">length</span>(x), <span class="at">Mean =</span> <span class="fu">mean</span>(x), <span class="at">SD =</span> <span class="fu">sd</span>(x),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">Median =</span> <span class="fu">median</span>(x), <span class="at">MAD =</span> <span class="fu">mad</span>(x), <span class="at">Min =</span> <span class="fu">min</span>(x), <span class="at">Max =</span> <span class="fu">max</span>(x))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>build <span class="ot">&lt;-</span> <span class="cf">function</span>(df, col, measure) {</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">drop_na</span>({{ col }}) <span class="sc">|&gt;</span> <span class="fu">pull</span>({{ col }})</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  by_wave <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">drop_na</span>({{ col }}) <span class="sc">|&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">.by =</span> wave,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">Mean =</span> <span class="fu">mean</span>({{ col }}), <span class="at">SD =</span> <span class="fu">sd</span>({{ col }}),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">Median =</span> <span class="fu">median</span>({{ col }}), <span class="at">MAD =</span> <span class="fu">mad</span>({{ col }}),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">Min =</span> <span class="fu">min</span>({{ col }}), <span class="at">Max =</span> <span class="fu">max</span>({{ col }})) <span class="sc">|&gt;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Window =</span> <span class="fu">factor</span>(wave, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>, <span class="dv">15</span>),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                           <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"6-8 mo"</span>, <span class="st">"9-11 mo"</span>, <span class="st">"12-14 mo"</span>, <span class="st">"15-17 mo"</span>)))</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  total <span class="ot">&lt;-</span> <span class="fu">summ</span>(v) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">Window =</span> <span class="fu">factor</span>(<span class="st">"All"</span>, <span class="at">levels =</span> <span class="st">"All"</span>))</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(by_wave, total) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">Measure =</span> measure)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">build</span>(df_part, pct_part, <span class="st">"Partial face"</span>),</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">build</span>(df_full, pct_full, <span class="st">"Full face"</span>)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Window =</span> <span class="fu">factor</span>(Window,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"6-8 mo"</span>, <span class="st">"9-11 mo"</span>, <span class="st">"12-14 mo"</span>, <span class="st">"15-17 mo"</span>, <span class="st">"All"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Measure, Window, n, Mean, SD, Median, MAD, Min, Max) <span class="sc">|&gt;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Measure), Window) <span class="sc">|&gt;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>(<span class="at">groupname_col =</span> <span class="st">"Measure"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Face presence in infants' recorded day"</span>,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Share of session duration with a face visible"</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_percent</span>(<span class="at">columns =</span> <span class="fu">c</span>(Mean, SD, Median, MAD, Min, Max), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(<span class="at">row_group.as_column =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="htfadecxpt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#htfadecxpt table {
+<div id="xafncteixh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#xafncteixh table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#htfadecxpt thead, #htfadecxpt tbody, #htfadecxpt tfoot, #htfadecxpt tr, #htfadecxpt td, #htfadecxpt th {
+#xafncteixh thead, #xafncteixh tbody, #xafncteixh tfoot, #xafncteixh tr, #xafncteixh td, #xafncteixh th {
   border-style: none;
 }
 
-#htfadecxpt p {
+#xafncteixh p {
   margin: 0;
   padding: 0;
 }
 
-#htfadecxpt .gt_table {
+#xafncteixh .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -320,12 +328,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_caption {
+#xafncteixh .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#htfadecxpt .gt_title {
+#xafncteixh .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -337,7 +345,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#htfadecxpt .gt_subtitle {
+#xafncteixh .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -349,7 +357,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#htfadecxpt .gt_heading {
+#xafncteixh .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -361,13 +369,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_bottom_border {
+#xafncteixh .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_col_headings {
+#xafncteixh .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -382,7 +390,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_col_heading {
+#xafncteixh .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -402,7 +410,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#htfadecxpt .gt_column_spanner_outer {
+#xafncteixh .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -414,15 +422,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#htfadecxpt .gt_column_spanner_outer:first-child {
+#xafncteixh .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#htfadecxpt .gt_column_spanner_outer:last-child {
+#xafncteixh .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#htfadecxpt .gt_column_spanner {
+#xafncteixh .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -434,11 +442,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#htfadecxpt .gt_spanner_row {
+#xafncteixh .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#htfadecxpt .gt_group_heading {
+#xafncteixh .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -464,7 +472,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#htfadecxpt .gt_empty_group_heading {
+#xafncteixh .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -479,15 +487,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#htfadecxpt .gt_from_md > :first-child {
+#xafncteixh .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#htfadecxpt .gt_from_md > :last-child {
+#xafncteixh .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#htfadecxpt .gt_row {
+#xafncteixh .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -506,7 +514,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#htfadecxpt .gt_stub {
+#xafncteixh .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -519,7 +527,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#htfadecxpt .gt_stub_row_group {
+#xafncteixh .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -533,15 +541,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#htfadecxpt .gt_row_group_first td {
+#xafncteixh .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#htfadecxpt .gt_row_group_first th {
+#xafncteixh .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#htfadecxpt .gt_summary_row {
+#xafncteixh .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -551,16 +559,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#htfadecxpt .gt_first_summary_row {
+#xafncteixh .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_first_summary_row.thick {
+#xafncteixh .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#htfadecxpt .gt_last_summary_row {
+#xafncteixh .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -570,7 +578,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_grand_summary_row {
+#xafncteixh .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -580,7 +588,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#htfadecxpt .gt_first_grand_summary_row {
+#xafncteixh .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -590,7 +598,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_last_grand_summary_row_top {
+#xafncteixh .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -600,11 +608,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_striped {
+#xafncteixh .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#htfadecxpt .gt_table_body {
+#xafncteixh .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -613,7 +621,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_footnotes {
+#xafncteixh .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -627,7 +635,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_footnote {
+#xafncteixh .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -636,7 +644,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#htfadecxpt .gt_sourcenotes {
+#xafncteixh .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -650,7 +658,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#htfadecxpt .gt_sourcenote {
+#xafncteixh .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -658,72 +666,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#htfadecxpt .gt_left {
+#xafncteixh .gt_left {
   text-align: left;
 }
 
-#htfadecxpt .gt_center {
+#xafncteixh .gt_center {
   text-align: center;
 }
 
-#htfadecxpt .gt_right {
+#xafncteixh .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#htfadecxpt .gt_font_normal {
+#xafncteixh .gt_font_normal {
   font-weight: normal;
 }
 
-#htfadecxpt .gt_font_bold {
+#xafncteixh .gt_font_bold {
   font-weight: bold;
 }
 
-#htfadecxpt .gt_font_italic {
+#xafncteixh .gt_font_italic {
   font-style: italic;
 }
 
-#htfadecxpt .gt_super {
+#xafncteixh .gt_super {
   font-size: 65%;
 }
 
-#htfadecxpt .gt_footnote_marks {
+#xafncteixh .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#htfadecxpt .gt_asterisk {
+#xafncteixh .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#htfadecxpt .gt_indent_1 {
+#xafncteixh .gt_indent_1 {
   text-indent: 5px;
 }
 
-#htfadecxpt .gt_indent_2 {
+#xafncteixh .gt_indent_2 {
   text-indent: 10px;
 }
 
-#htfadecxpt .gt_indent_3 {
+#xafncteixh .gt_indent_3 {
   text-indent: 15px;
 }
 
-#htfadecxpt .gt_indent_4 {
+#xafncteixh .gt_indent_4 {
   text-indent: 20px;
 }
 
-#htfadecxpt .gt_indent_5 {
+#xafncteixh .gt_indent_5 {
   text-indent: 25px;
 }
 
-#htfadecxpt .katex-display {
+#xafncteixh .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#htfadecxpt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#xafncteixh div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -731,10 +739,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
 <thead>
 <tr class="gt_heading header">
-<td colspan="7" class="gt_heading gt_title gt_font_normal">Face presence in infants' recorded day</td>
+<td colspan="9" class="gt_heading gt_title gt_font_normal">Face presence in infants' recorded day</td>
 </tr>
 <tr class="gt_heading even">
-<td colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Share of session duration with a face visible</td>
+<td colspan="9" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Share of session duration with a face visible</td>
 </tr>
 <tr class="gt_col_headings header">
 <th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
@@ -744,17 +752,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th id="SD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">SD</th>
 <th id="Median" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median</th>
 <th id="MAD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">MAD</th>
+<th id="Min" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Min</th>
+<th id="Max" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Max</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
 <tr class="gt_row_group_first odd">
-<td rowspan="4" class="gt_row gt_left gt_stub_row_group" headers="Partial face stub_2_1 stub_1">Partial face</td>
+<td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="Partial face stub_2_1 stub_1">Partial face</td>
 <td class="gt_row gt_center" headers="Partial face stub_2_1 Window">6-8 mo</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_1 n">43</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_1 Mean">30.5%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_1 SD">14.3%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_1 Median">28.3%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_1 MAD">16.0%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 Min">3.6%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 Max">65.3%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center" headers="Partial face stub_2_2 Window">9-11 mo</td>
@@ -763,6 +775,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td class="gt_row gt_right" headers="Partial face stub_2_2 SD">13.9%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_2 Median">29.8%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_2 MAD">16.1%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 Min">2.8%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 Max">55.6%</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Partial face stub_2_3 Window">12-14 mo</td>
@@ -771,6 +785,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td class="gt_row gt_right" headers="Partial face stub_2_3 SD">12.3%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_3 Median">32.8%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_3 MAD">10.5%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 Min">9.2%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 Max">65.3%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center" headers="Partial face stub_2_4 Window">15-17 mo</td>
@@ -779,39 +795,69 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td class="gt_row gt_right" headers="Partial face stub_2_4 SD">10.7%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_4 Median">32.4%</td>
 <td class="gt_row gt_right" headers="Partial face stub_2_4 MAD">8.0%</td>
-</tr>
-<tr class="gt_row_group_first odd">
-<td rowspan="4" class="gt_row gt_left gt_stub_row_group" headers="Full face stub_2_5 stub_1">Full face</td>
-<td class="gt_row gt_center" headers="Full face stub_2_5 Window">6-8 mo</td>
-<td class="gt_row gt_right" headers="Full face stub_2_5 n">44</td>
-<td class="gt_row gt_right" headers="Full face stub_2_5 Mean">3.4%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_5 SD">2.9%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_5 Median">2.4%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_5 MAD">2.1%</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_center" headers="Full face stub_2_6 Window">9-11 mo</td>
-<td class="gt_row gt_right" headers="Full face stub_2_6 n">41</td>
-<td class="gt_row gt_right" headers="Full face stub_2_6 Mean">3.8%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_6 SD">2.8%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_6 Median">3.0%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_6 MAD">1.6%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 Min">13.1%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 Max">54.9%</td>
 </tr>
 <tr class="odd">
-<td class="gt_row gt_center" headers="Full face stub_2_7 Window">12-14 mo</td>
-<td class="gt_row gt_right" headers="Full face stub_2_7 n">26</td>
-<td class="gt_row gt_right" headers="Full face stub_2_7 Mean">5.5%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_7 SD">3.8%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_7 Median">4.5%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_7 MAD">3.4%</td>
+<td class="gt_row gt_center" headers="Partial face stub_2_5 Window">All</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 n">135</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 Mean">31.8%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 SD">13.1%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 Median">30.7%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 MAD">13.0%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 Min">2.8%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_5 Max">65.3%</td>
+</tr>
+<tr class="gt_row_group_first even">
+<td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="Full face stub_2_6 stub_1">Full face</td>
+<td class="gt_row gt_center" headers="Full face stub_2_6 Window">6-8 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 n">44</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Mean">3.4%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 SD">2.9%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Median">2.4%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 MAD">2.1%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Min">0.1%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Max">11.3%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Full face stub_2_7 Window">9-11 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 n">41</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Mean">3.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 SD">2.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Median">3.0%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 MAD">1.6%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Min">0.2%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Max">13.2%</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_center" headers="Full face stub_2_8 Window">15-17 mo</td>
-<td class="gt_row gt_right" headers="Full face stub_2_8 n">25</td>
-<td class="gt_row gt_right" headers="Full face stub_2_8 Mean">3.9%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_8 SD">2.2%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_8 Median">3.3%</td>
-<td class="gt_row gt_right" headers="Full face stub_2_8 MAD">2.6%</td>
+<td class="gt_row gt_center" headers="Full face stub_2_8 Window">12-14 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 n">26</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Mean">5.5%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 SD">3.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Median">4.5%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 MAD">3.4%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Min">0.5%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Max">16.7%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Full face stub_2_9 Window">15-17 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 n">25</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 Mean">3.9%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 SD">2.2%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 Median">3.3%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 MAD">2.6%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 Min">0.6%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_9 Max">8.3%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Full face stub_2_10 Window">All</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 n">136</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 Mean">4.0%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 SD">3.0%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 Median">3.0%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 MAD">2.7%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 Min">0.1%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_10 Max">16.7%</td>
 </tr>
 </tbody>
 </table>
@@ -864,7 +910,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">transmute</span>(</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">Est. =</span> Median, <span class="at">CL =</span> CI_low, <span class="at">CU =</span> CI_high,</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">OR =</span> <span class="fu">exp</span>(Est.), <span class="at">OR_CL =</span> <span class="fu">exp</span>(CL), <span class="at">OR_CU =</span> <span class="fu">exp</span>(CU),</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">pval =</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> pd)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">pd =</span> pd</span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"Outcome"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -874,32 +920,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gt</span>(res) <span class="sc">|&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"Change in face presence across age windows"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_number</span>(<span class="at">columns =</span> Est.<span class="sc">:</span>OR_CU, <span class="at">decimals =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt</span>(<span class="at">columns =</span> pval, <span class="at">fns =</span> \(x) {</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    cx <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">"^0</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"."</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x))</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(x <span class="sc">&lt;</span> <span class="fl">0.001</span>, <span class="st">"&lt;.001"</span>, cx)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(Est., CL, CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(OR, OR_CL, OR_CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(<span class="at">Est. =</span> <span class="st">"Logit scale"</span>, <span class="at">OR =</span> <span class="st">"Odds ratio"</span>, <span class="at">pval =</span> <span class="st">"p-value"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_align</span>(<span class="at">align =</span> <span class="st">"center"</span>, <span class="at">columns =</span> <span class="fu">c</span>(Est., OR))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_percent</span>(<span class="at">columns =</span> pd, <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(Est., CL, CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(OR, OR_CL, OR_CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(<span class="at">Est. =</span> <span class="st">"Logit scale"</span>, <span class="at">OR =</span> <span class="st">"Odds ratio"</span>, <span class="at">pd =</span> <span class="st">"pd"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_align</span>(<span class="at">align =</span> <span class="st">"center"</span>, <span class="at">columns =</span> <span class="fu">c</span>(Est., OR))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="mljysuaqht" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#mljysuaqht table {
+<div id="vxtmvcbjge" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#vxtmvcbjge table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#mljysuaqht thead, #mljysuaqht tbody, #mljysuaqht tfoot, #mljysuaqht tr, #mljysuaqht td, #mljysuaqht th {
+#vxtmvcbjge thead, #vxtmvcbjge tbody, #vxtmvcbjge tfoot, #vxtmvcbjge tr, #vxtmvcbjge td, #vxtmvcbjge th {
   border-style: none;
 }
 
-#mljysuaqht p {
+#vxtmvcbjge p {
   margin: 0;
   padding: 0;
 }
 
-#mljysuaqht .gt_table {
+#vxtmvcbjge .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -925,12 +968,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_caption {
+#vxtmvcbjge .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#mljysuaqht .gt_title {
+#vxtmvcbjge .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -942,7 +985,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#mljysuaqht .gt_subtitle {
+#vxtmvcbjge .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -954,7 +997,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#mljysuaqht .gt_heading {
+#vxtmvcbjge .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -966,13 +1009,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_bottom_border {
+#vxtmvcbjge .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_col_headings {
+#vxtmvcbjge .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -987,7 +1030,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_col_heading {
+#vxtmvcbjge .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1007,7 +1050,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mljysuaqht .gt_column_spanner_outer {
+#vxtmvcbjge .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1019,15 +1062,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#mljysuaqht .gt_column_spanner_outer:first-child {
+#vxtmvcbjge .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mljysuaqht .gt_column_spanner_outer:last-child {
+#vxtmvcbjge .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mljysuaqht .gt_column_spanner {
+#vxtmvcbjge .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1039,11 +1082,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#mljysuaqht .gt_spanner_row {
+#vxtmvcbjge .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#mljysuaqht .gt_group_heading {
+#vxtmvcbjge .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1069,7 +1112,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#mljysuaqht .gt_empty_group_heading {
+#vxtmvcbjge .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1084,15 +1127,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#mljysuaqht .gt_from_md > :first-child {
+#vxtmvcbjge .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mljysuaqht .gt_from_md > :last-child {
+#vxtmvcbjge .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mljysuaqht .gt_row {
+#vxtmvcbjge .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1111,7 +1154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#mljysuaqht .gt_stub {
+#vxtmvcbjge .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1124,7 +1167,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mljysuaqht .gt_stub_row_group {
+#vxtmvcbjge .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1138,15 +1181,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#mljysuaqht .gt_row_group_first td {
+#vxtmvcbjge .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mljysuaqht .gt_row_group_first th {
+#vxtmvcbjge .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#mljysuaqht .gt_summary_row {
+#vxtmvcbjge .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1156,16 +1199,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mljysuaqht .gt_first_summary_row {
+#vxtmvcbjge .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_first_summary_row.thick {
+#vxtmvcbjge .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mljysuaqht .gt_last_summary_row {
+#vxtmvcbjge .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1175,7 +1218,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_grand_summary_row {
+#vxtmvcbjge .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1185,7 +1228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mljysuaqht .gt_first_grand_summary_row {
+#vxtmvcbjge .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1195,7 +1238,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_last_grand_summary_row_top {
+#vxtmvcbjge .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1205,11 +1248,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_striped {
+#vxtmvcbjge .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mljysuaqht .gt_table_body {
+#vxtmvcbjge .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1218,7 +1261,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_footnotes {
+#vxtmvcbjge .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1232,7 +1275,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_footnote {
+#vxtmvcbjge .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1241,7 +1284,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mljysuaqht .gt_sourcenotes {
+#vxtmvcbjge .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1255,7 +1298,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#mljysuaqht .gt_sourcenote {
+#vxtmvcbjge .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1263,72 +1306,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#mljysuaqht .gt_left {
+#vxtmvcbjge .gt_left {
   text-align: left;
 }
 
-#mljysuaqht .gt_center {
+#vxtmvcbjge .gt_center {
   text-align: center;
 }
 
-#mljysuaqht .gt_right {
+#vxtmvcbjge .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mljysuaqht .gt_font_normal {
+#vxtmvcbjge .gt_font_normal {
   font-weight: normal;
 }
 
-#mljysuaqht .gt_font_bold {
+#vxtmvcbjge .gt_font_bold {
   font-weight: bold;
 }
 
-#mljysuaqht .gt_font_italic {
+#vxtmvcbjge .gt_font_italic {
   font-style: italic;
 }
 
-#mljysuaqht .gt_super {
+#vxtmvcbjge .gt_super {
   font-size: 65%;
 }
 
-#mljysuaqht .gt_footnote_marks {
+#vxtmvcbjge .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#mljysuaqht .gt_asterisk {
+#vxtmvcbjge .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mljysuaqht .gt_indent_1 {
+#vxtmvcbjge .gt_indent_1 {
   text-indent: 5px;
 }
 
-#mljysuaqht .gt_indent_2 {
+#vxtmvcbjge .gt_indent_2 {
   text-indent: 10px;
 }
 
-#mljysuaqht .gt_indent_3 {
+#vxtmvcbjge .gt_indent_3 {
   text-indent: 15px;
 }
 
-#mljysuaqht .gt_indent_4 {
+#vxtmvcbjge .gt_indent_4 {
   text-indent: 20px;
 }
 
-#mljysuaqht .gt_indent_5 {
+#vxtmvcbjge .gt_indent_5 {
   text-indent: 25px;
 }
 
-#mljysuaqht .katex-display {
+#vxtmvcbjge .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#mljysuaqht div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#vxtmvcbjge div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1342,7 +1385,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th id="Outcome" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Outcome</th>
 <th id="Est." class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Logit scale</th>
 <th id="OR" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Odds ratio</th>
-<th id="pval" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">p-value</th>
+<th id="pd" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">pd</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
@@ -1350,13 +1393,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td class="gt_row gt_left" headers="Outcome">Partial face</td>
 <td class="gt_row gt_center" headers="Est.">0.05 (−0.03, 0.13)</td>
 <td class="gt_row gt_center" headers="OR">1.05 (0.97, 1.14)</td>
-<td class="gt_row gt_right" headers="pval">.218</td>
+<td class="gt_row gt_right" headers="pd">89.1%</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Outcome">Full face</td>
 <td class="gt_row gt_center" headers="Est.">0.11 (0.01, 0.22)</td>
 <td class="gt_row gt_center" headers="OR">1.12 (1.01, 1.25)</td>
-<td class="gt_row gt_right" headers="pval">.037</td>
+<td class="gt_row gt_right" headers="pd">98.2%</td>
 </tr>
 </tbody>
 </table>
@@ -1435,8 +1478,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 5 part_median     0.307 
 6 full_mean       0.04  
 7 full_median     0.0304
-8 part_icc        0.377 
-9 full_icc        0.197 </code></pre>
+8 part_icc        0.381 
+9 full_icc        0.2   </code></pre>
 </div>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(</span>
@@ -1599,7 +1642,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Conditioned on: all random effects
 
 ## Variance Ratio (comparable to ICC)
-Ratio: 0.38  CI 95%: [0.11 0.58]
+Ratio: 0.38  CI 95%: [0.10 0.58]
 
 ## Variances of Posterior Predicted Distribution
 Conditioned on fixed effects: 0.01  CI 95%: [0.01 0.02]
@@ -1615,7 +1658,7 @@ Difference: 0.01  CI 95%: [0.00 0.01]</code></pre>
 Conditioned on: all random effects
 
 ## Variance Ratio (comparable to ICC)
-Ratio: 0.20  CI 95%: [-0.32 0.52]
+Ratio: 0.20  CI 95%: [-0.33 0.52]
 
 ## Variances of Posterior Predicted Distribution
 Conditioned on fixed effects: 0.00  CI 95%: [0.00 0.00]
