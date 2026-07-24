@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeffrey Girard">
+<meta name="dcterms.date" content="2026-07-24">
+
+<title>Face Presence</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-8dcbdfd7d2bf9f944350180a21809bf4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#approach" id="toc-approach" class="nav-link active" data-scroll-target="#approach">Approach</a></li>
+  <li><a href="#union-durations" id="toc-union-durations" class="nav-link" data-scroll-target="#union-durations">Union durations</a></li>
+  <li><a href="#main-table-face-presence-by-age-window" id="toc-main-table-face-presence-by-age-window" class="nav-link" data-scroll-target="#main-table-face-presence-by-age-window">MAIN TABLE: face presence by age window</a></li>
+  <li><a href="#models" id="toc-models" class="nav-link" data-scroll-target="#models">Models</a></li>
+  <li><a href="#main-table-change-over-age" id="toc-main-table-change-over-age" class="nav-link" data-scroll-target="#main-table-change-over-age">MAIN TABLE: change over age</a></li>
+  <li><a href="#figure-face-presence-across-age" id="toc-figure-face-presence-across-age" class="nav-link" data-scroll-target="#figure-face-presence-across-age">FIGURE: face presence across age</a></li>
+  <li><a href="#in-text-numbers" id="toc-in-text-numbers" class="nav-link" data-scroll-target="#in-text-numbers">IN-TEXT NUMBERS</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key takeaways</a></li>
+  <li><a href="#supplement" id="toc-supplement" class="nav-link" data-scroll-target="#supplement">SUPPLEMENT</a>
+  <ul class="collapse">
+  <li><a href="#s1.-distributions" id="toc-s1.-distributions" class="nav-link" data-scroll-target="#s1.-distributions">S1. Distributions</a></li>
+  <li><a href="#s2.-monotonic-models" id="toc-s2.-monotonic-models" class="nav-link" data-scroll-target="#s2.-monotonic-models">S2. Monotonic models</a></li>
+  <li><a href="#s3.-model-checks" id="toc-s3.-model-checks" class="nav-link" data-scroll-target="#s3.-model-checks">S3. Model checks</a></li>
+  <li><a href="#s4.-variance-decomposition" id="toc-s4.-variance-decomposition" class="nav-link" data-scroll-target="#s4.-variance-decomposition">S4. Variance decomposition</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Face Presence</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeffrey Girard </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 24, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="approach" class="level2">
+<h2 class="anchored" data-anchor-id="approach">Approach</h2>
+<p>How much of an infant’s recorded day contained a visible face?</p>
+<ul>
+<li><strong>Unit</strong>: the video timeline. Face presence is a property of the infant’s view, not of any individual person, so two co-visible faces do not make the view twice as face-filled. Durations are therefore a <strong>wall-clock union</strong>: intervals are merged before summing.</li>
+<li>This differs deliberately from the FACS configuration analyses, which use person-time, because a <em>configuration</em> belongs to a face while <em>presence</em> does not.</li>
+<li><strong>Denominator</strong>: total session duration (not <code>valid_fullface</code>). The question is what fraction of the recorded day had a face, so occluded and face-free time both belong in the base.</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(easystats)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggeffects)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>info <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"/mnt/datasets/SEEDLingS/2_PROCESSED/session_info.rds"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>part <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"/mnt/datasets/SEEDLingS/2_PROCESSED/partface_coding.rds"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(info, <span class="at">by =</span> <span class="fu">join_by</span>(subject, wave, month))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>full <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"/mnt/datasets/SEEDLingS/2_PROCESSED/fullface_coding.rds"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(info, <span class="at">by =</span> <span class="fu">join_by</span>(subject, wave, month))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="union-durations" class="level2">
+<h2 class="anchored" data-anchor-id="union-durations">Union durations</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge overlapping intervals within a session, then sum. Face presence is a</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># property of the timeline, so co-visible faces must not double-count.</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>union_duration <span class="ot">&lt;-</span> <span class="cf">function</span>(df, onset, offset) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(subject, wave, month, {{ onset }}) <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">.by =</span> <span class="fu">c</span>(subject, wave, month),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">.max_off =</span> <span class="fu">cummax</span>(<span class="fu">lag</span>({{ offset }}, <span class="at">default =</span> <span class="sc">-</span><span class="cn">Inf</span>)),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">.new_blk =</span> {{ onset }} <span class="sc">&gt;</span> .max_off,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">.blk     =</span> <span class="fu">cumsum</span>(.new_blk)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">.by =</span> <span class="fu">c</span>(subject, wave, month, .blk),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">.on  =</span> <span class="fu">min</span>({{ onset }}),</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">.off =</span> <span class="fu">max</span>({{ offset }}),</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">session_duration =</span> <span class="fu">first</span>(session_duration)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">.by =</span> <span class="fu">c</span>(subject, wave, month),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">sum_sec =</span> <span class="fu">sum</span>(.off <span class="sc">-</span> .on),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">session_duration =</span> <span class="fu">first</span>(session_duration)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df_part <span class="ot">&lt;-</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  part <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(part_duration <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">union_duration</span>(part_onset, part_offset) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">pct_part =</span> sum_sec <span class="sc">/</span> session_duration,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">window   =</span> <span class="fu">match</span>(wave, <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>, <span class="dv">15</span>)) <span class="sc">-</span> <span class="dv">1</span>   <span class="co"># wave -&gt; 0,1,2,3</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">complete</span>(subject, window)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>df_full <span class="ot">&lt;-</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  full <span class="sc">|&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(full_duration <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">union_duration</span>(full_onset, full_offset) <span class="sc">|&gt;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_full =</span> sum_sec <span class="sc">/</span> session_duration) <span class="sc">|&gt;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(subject, wave) <span class="sc">|&gt;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">.by =</span> subject, <span class="at">window =</span> <span class="fu">row_number</span>() <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">complete</span>(subject, window)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="main-table-face-presence-by-age-window" class="level2">
+<h2 class="anchored" data-anchor-id="main-table-face-presence-by-age-window">MAIN TABLE: face presence by age window</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  df_part <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(pct_part) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">.by =</span> wave, <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">Mean =</span> <span class="fu">mean</span>(pct_part), <span class="at">SD =</span> <span class="fu">sd</span>(pct_part),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">Median =</span> <span class="fu">median</span>(pct_part), <span class="at">MAD =</span> <span class="fu">mad</span>(pct_part)) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Measure =</span> <span class="st">"Partial face"</span>),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  df_full <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(pct_full) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">.by =</span> wave, <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">Mean =</span> <span class="fu">mean</span>(pct_full), <span class="at">SD =</span> <span class="fu">sd</span>(pct_full),</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">Median =</span> <span class="fu">median</span>(pct_full), <span class="at">MAD =</span> <span class="fu">mad</span>(pct_full)) <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Measure =</span> <span class="st">"Full face"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Window =</span> <span class="fu">factor</span>(wave, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9</span>, <span class="dv">12</span>, <span class="dv">15</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"6-8 mo"</span>, <span class="st">"9-11 mo"</span>, <span class="st">"12-14 mo"</span>, <span class="st">"15-17 mo"</span>))</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Measure, Window, n, Mean, SD, Median, MAD) <span class="sc">|&gt;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Measure), Window) <span class="sc">|&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>(<span class="at">groupname_col =</span> <span class="st">"Measure"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Face presence in infants' recorded day"</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Share of session duration with a face visible"</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_percent</span>(<span class="at">columns =</span> <span class="fu">c</span>(Mean, SD, Median, MAD), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(<span class="at">row_group.as_column =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="htfadecxpt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#htfadecxpt table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#htfadecxpt thead, #htfadecxpt tbody, #htfadecxpt tfoot, #htfadecxpt tr, #htfadecxpt td, #htfadecxpt th {
+  border-style: none;
+}
+
+#htfadecxpt p {
+  margin: 0;
+  padding: 0;
+}
+
+#htfadecxpt .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#htfadecxpt .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#htfadecxpt .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#htfadecxpt .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#htfadecxpt .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#htfadecxpt .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#htfadecxpt .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#htfadecxpt .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#htfadecxpt .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#htfadecxpt .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#htfadecxpt .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#htfadecxpt .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#htfadecxpt .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#htfadecxpt .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#htfadecxpt .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#htfadecxpt .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#htfadecxpt .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#htfadecxpt .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#htfadecxpt .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#htfadecxpt .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#htfadecxpt .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#htfadecxpt .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#htfadecxpt .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#htfadecxpt .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#htfadecxpt .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#htfadecxpt .gt_left {
+  text-align: left;
+}
+
+#htfadecxpt .gt_center {
+  text-align: center;
+}
+
+#htfadecxpt .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#htfadecxpt .gt_font_normal {
+  font-weight: normal;
+}
+
+#htfadecxpt .gt_font_bold {
+  font-weight: bold;
+}
+
+#htfadecxpt .gt_font_italic {
+  font-style: italic;
+}
+
+#htfadecxpt .gt_super {
+  font-size: 65%;
+}
+
+#htfadecxpt .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#htfadecxpt .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#htfadecxpt .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#htfadecxpt .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#htfadecxpt .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#htfadecxpt .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#htfadecxpt .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#htfadecxpt .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#htfadecxpt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="7" class="gt_heading gt_title gt_font_normal">Face presence in infants' recorded day</td>
+</tr>
+<tr class="gt_heading even">
+<td colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Share of session duration with a face visible</td>
+</tr>
+<tr class="gt_col_headings header">
+<th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th id="Window" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Window</th>
+<th id="n" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">n</th>
+<th id="Mean" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean</th>
+<th id="SD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">SD</th>
+<th id="Median" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median</th>
+<th id="MAD" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">MAD</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_row_group_first odd">
+<td rowspan="4" class="gt_row gt_left gt_stub_row_group" headers="Partial face stub_2_1 stub_1">Partial face</td>
+<td class="gt_row gt_center" headers="Partial face stub_2_1 Window">6-8 mo</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 n">43</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 Mean">30.5%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 SD">14.3%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 Median">28.3%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_1 MAD">16.0%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Partial face stub_2_2 Window">9-11 mo</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 n">41</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 Mean">32.1%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 SD">13.9%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 Median">29.8%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_2 MAD">16.1%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Partial face stub_2_3 Window">12-14 mo</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 n">26</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 Mean">33.2%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 SD">12.3%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 Median">32.8%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_3 MAD">10.5%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Partial face stub_2_4 Window">15-17 mo</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 n">25</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 Mean">32.0%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 SD">10.7%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 Median">32.4%</td>
+<td class="gt_row gt_right" headers="Partial face stub_2_4 MAD">8.0%</td>
+</tr>
+<tr class="gt_row_group_first odd">
+<td rowspan="4" class="gt_row gt_left gt_stub_row_group" headers="Full face stub_2_5 stub_1">Full face</td>
+<td class="gt_row gt_center" headers="Full face stub_2_5 Window">6-8 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_5 n">44</td>
+<td class="gt_row gt_right" headers="Full face stub_2_5 Mean">3.4%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_5 SD">2.9%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_5 Median">2.4%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_5 MAD">2.1%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Full face stub_2_6 Window">9-11 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 n">41</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Mean">3.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 SD">2.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 Median">3.0%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_6 MAD">1.6%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Full face stub_2_7 Window">12-14 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 n">26</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Mean">5.5%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 SD">3.8%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 Median">4.5%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_7 MAD">3.4%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Full face stub_2_8 Window">15-17 mo</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 n">25</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Mean">3.9%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 SD">2.2%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 Median">3.3%</td>
+<td class="gt_row gt_right" headers="Full face stub_2_8 MAD">2.6%</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="models" class="level2">
+<h2 class="anchored" data-anchor-id="models">Models</h2>
+<p>Beta regression on the proportion of session time with a face, with a random intercept per infant. <code>mi()</code> handles the sessions missing from the complete grid.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit_presence <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome, form, file) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">brm</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">formula =</span> form,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">family  =</span> <span class="fu">Beta</span>(<span class="at">link =</span> <span class="st">"logit"</span>, <span class="at">link_phi =</span> <span class="st">"log"</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data    =</span> data,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior   =</span> <span class="cf">if</span> (<span class="fu">str_detect</span>(<span class="fu">as.character</span>(form)[<span class="dv">3</span>], <span class="st">"window"</span>))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">set_prior</span>(<span class="st">"normal(0, 0.5)"</span>, <span class="at">class =</span> <span class="st">"b"</span>) <span class="cf">else</span> <span class="cn">NULL</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">10000</span>, <span class="at">warmup =</span> <span class="dv">9000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">init =</span> <span class="dv">0</span>, <span class="at">file =</span> file,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.99</span>, <span class="at">max_treedepth =</span> <span class="dv">12</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>part_null      <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_part, <span class="at">form =</span> <span class="fu">bf</span>(pct_part <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> subject)),</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"part_null_union"</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>part_linear    <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_part, <span class="at">form =</span> <span class="fu">bf</span>(pct_part <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> window <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> window <span class="sc">|</span> subject)),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"part_linear_union"</span>)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>part_monotonic <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_part, <span class="at">form =</span> <span class="fu">bf</span>(pct_part <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">mo</span>(window) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">mo</span>(window) <span class="sc">|</span> subject)),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"part_monotonic_union"</span>)</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>full_null      <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_full, <span class="at">form =</span> <span class="fu">bf</span>(pct_full <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> subject)),</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"full_null_union"</span>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>full_linear    <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_full, <span class="at">form =</span> <span class="fu">bf</span>(pct_full <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> window <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> window <span class="sc">|</span> subject)),</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"full_linear_union"</span>)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>full_monotonic <span class="ot">&lt;-</span> <span class="fu">fit_presence</span>(df_full, <span class="at">form =</span> <span class="fu">bf</span>(pct_full <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">mo</span>(window) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">mo</span>(window) <span class="sc">|</span> subject)),</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>                               <span class="at">file =</span> <span class="st">"full_monotonic_union"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="main-table-change-over-age" class="level2">
+<h2 class="anchored" data-anchor-id="main-table-change-over-age">MAIN TABLE: change over age</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="st">"Partial face"</span> <span class="ot">=</span> part_linear, <span class="st">"Full face"</span> <span class="ot">=</span> full_linear) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(\(m) {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">describe_posterior</span>(m, <span class="at">parameters =</span> <span class="st">"window"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">transmute</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">Est. =</span> Median, <span class="at">CL =</span> CI_low, <span class="at">CU =</span> CI_high,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">OR =</span> <span class="fu">exp</span>(Est.), <span class="at">OR_CL =</span> <span class="fu">exp</span>(CL), <span class="at">OR_CU =</span> <span class="fu">exp</span>(CU),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">pval =</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> pd)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"Outcome"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required namespace: rstan</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gt</span>(res) <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"Change in face presence across age windows"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_number</span>(<span class="at">columns =</span> Est.<span class="sc">:</span>OR_CU, <span class="at">decimals =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt</span>(<span class="at">columns =</span> pval, <span class="at">fns =</span> \(x) {</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    cx <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">"^0</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"."</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ifelse</span>(x <span class="sc">&lt;</span> <span class="fl">0.001</span>, <span class="st">"&lt;.001"</span>, cx)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(Est., CL, CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_merge</span>(<span class="at">columns =</span> <span class="fu">c</span>(OR, OR_CL, OR_CU), <span class="at">pattern =</span> <span class="st">"{1} ({2}, {3})"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_label</span>(<span class="at">Est. =</span> <span class="st">"Logit scale"</span>, <span class="at">OR =</span> <span class="st">"Odds ratio"</span>, <span class="at">pval =</span> <span class="st">"p-value"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cols_align</span>(<span class="at">align =</span> <span class="st">"center"</span>, <span class="at">columns =</span> <span class="fu">c</span>(Est., OR))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="mljysuaqht" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#mljysuaqht table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#mljysuaqht thead, #mljysuaqht tbody, #mljysuaqht tfoot, #mljysuaqht tr, #mljysuaqht td, #mljysuaqht th {
+  border-style: none;
+}
+
+#mljysuaqht p {
+  margin: 0;
+  padding: 0;
+}
+
+#mljysuaqht .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#mljysuaqht .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#mljysuaqht .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#mljysuaqht .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#mljysuaqht .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#mljysuaqht .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#mljysuaqht .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#mljysuaqht .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#mljysuaqht .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#mljysuaqht .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#mljysuaqht .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#mljysuaqht .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#mljysuaqht .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#mljysuaqht .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#mljysuaqht .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mljysuaqht .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#mljysuaqht .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#mljysuaqht .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#mljysuaqht .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mljysuaqht .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#mljysuaqht .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mljysuaqht .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#mljysuaqht .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mljysuaqht .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mljysuaqht .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mljysuaqht .gt_left {
+  text-align: left;
+}
+
+#mljysuaqht .gt_center {
+  text-align: center;
+}
+
+#mljysuaqht .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#mljysuaqht .gt_font_normal {
+  font-weight: normal;
+}
+
+#mljysuaqht .gt_font_bold {
+  font-weight: bold;
+}
+
+#mljysuaqht .gt_font_italic {
+  font-style: italic;
+}
+
+#mljysuaqht .gt_super {
+  font-size: 65%;
+}
+
+#mljysuaqht .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#mljysuaqht .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#mljysuaqht .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#mljysuaqht .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#mljysuaqht .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#mljysuaqht .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#mljysuaqht .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#mljysuaqht .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#mljysuaqht div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<td colspan="4" class="gt_heading gt_title gt_font_normal gt_bottom_border">Change in face presence across age windows</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="Outcome" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Outcome</th>
+<th id="Est." class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Logit scale</th>
+<th id="OR" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Odds ratio</th>
+<th id="pval" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">p-value</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Outcome">Partial face</td>
+<td class="gt_row gt_center" headers="Est.">0.05 (−0.03, 0.13)</td>
+<td class="gt_row gt_center" headers="OR">1.05 (0.97, 1.14)</td>
+<td class="gt_row gt_right" headers="pval">.218</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Outcome">Full face</td>
+<td class="gt_row gt_center" headers="Est.">0.11 (0.01, 0.22)</td>
+<td class="gt_row gt_center" headers="OR">1.12 (1.01, 1.25)</td>
+<td class="gt_row gt_right" headers="pval">.037</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="figure-face-presence-across-age" class="level2">
+<h2 class="anchored" data-anchor-id="figure-face-presence-across-age">FIGURE: face presence across age</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ce_df <span class="ot">&lt;-</span> <span class="cf">function</span>(model, label) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="fu">conditional_effects</span>(model, <span class="at">effects =</span> <span class="st">"window"</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                           <span class="at">int_conditions =</span> <span class="fu">list</span>(<span class="at">window =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>)), <span class="at">plot =</span> <span class="cn">FALSE</span>)[[<span class="dv">1</span>]]<span class="sc">$</span>data <span class="sc">|&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute</span>(window, estimate__, lower__, upper__, <span class="at">Measure =</span> label)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>fig_presence <span class="ot">&lt;-</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">ce_df</span>(part_linear, <span class="st">"Partial face"</span>),</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">ce_df</span>(full_linear, <span class="st">"Full face"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> window, <span class="at">y =</span> estimate__, <span class="at">ymin =</span> lower__, <span class="at">ymax =</span> upper__)) <span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">alpha =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Measure, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"6-8"</span>, <span class="st">"9-11"</span>, <span class="st">"12-14"</span>, <span class="st">"15-17"</span>)</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age window (months)"</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Share of session with a face visible"</span>) <span class="sc">+</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>fig_presence</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="face_presence_files/figure-html/figure-1.png" class="img-fluid figure-img" width="1950"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"fig_presence.png"</span>, fig_presence, <span class="at">width =</span> <span class="fl">6.5</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">dpi =</span> <span class="dv">300</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="in-text-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="in-text-numbers">IN-TEXT NUMBERS</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>vd_part <span class="ot">&lt;-</span> <span class="fu">variance_decomposition</span>(part_null)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>vd_full <span class="ot">&lt;-</span> <span class="fu">variance_decomposition</span>(full_null)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_sessions_part   =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(df_part<span class="sc">$</span>pct_part)),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_sessions_full   =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(df_full<span class="sc">$</span>pct_full)),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_infants         =</span> <span class="fu">n_distinct</span>(df_part<span class="sc">$</span>subject),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">part_mean         =</span> <span class="fu">mean</span>(df_part<span class="sc">$</span>pct_part, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">part_median       =</span> <span class="fu">median</span>(df_part<span class="sc">$</span>pct_part, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">full_mean         =</span> <span class="fu">mean</span>(df_full<span class="sc">$</span>pct_full, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">full_median       =</span> <span class="fu">median</span>(df_full<span class="sc">$</span>pct_full, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">part_icc          =</span> vd_part<span class="sc">$</span>ICC_decomposed,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">full_icc          =</span> vd_full<span class="sc">$</span>ICC_decomposed</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">enframe</span>(<span class="at">name =</span> <span class="st">"quantity"</span>, <span class="at">value =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">map_chr</span>(value, \(x) <span class="fu">format</span>(<span class="fu">unlist</span>(x), <span class="at">digits =</span> <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="at">n =</span> <span class="cn">Inf</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 2
+  quantity        value 
+  &lt;chr&gt;           &lt;chr&gt; 
+1 n_sessions_part 135   
+2 n_sessions_full 136   
+3 n_infants       44    
+4 part_mean       0.318 
+5 part_median     0.307 
+6 full_mean       0.04  
+7 full_median     0.0304
+8 part_icc        0.377 
+9 full_icc        0.197 </code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="st">"## Key takeaways</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="st">1. **Faces are rare in infants' view.** A full face was visible for a median of</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="st">   %.1f%% of the session; a partial face for %.1f%%.</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="st">2. **Infants differ from one another.** The intercept-only models attribute</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="st">   %.0f%% (partial) and %.0f%% (full) of the variance to stable between-infant</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="st">   differences.</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="dv">100</span> <span class="sc">*</span> <span class="fu">median</span>(df_full<span class="sc">$</span>pct_full, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="dv">100</span> <span class="sc">*</span> <span class="fu">median</span>(df_part<span class="sc">$</span>pct_part, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="dv">100</span> <span class="sc">*</span> vd_part<span class="sc">$</span>ICC_decomposed,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="dv">100</span> <span class="sc">*</span> vd_full<span class="sc">$</span>ICC_decomposed</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">Key takeaways</h2>
+<ol type="1">
+<li><strong>Faces are rare in infants’ view.</strong> A full face was visible for a median of 3.0% of the session; a partial face for 30.7%.</li>
+<li><strong>Infants differ from one another.</strong> The intercept-only models attribute 38% (partial) and 20% (full) of the variance to stable between-infant differences.</li>
+</ol>
+</section>
+<section id="supplement" class="level2">
+<h2 class="anchored" data-anchor-id="supplement">SUPPLEMENT</h2>
+<section id="s1.-distributions" class="level3">
+<h3 class="anchored" data-anchor-id="s1.-distributions">S1. Distributions</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  df_part <span class="sc">|&gt;</span> <span class="fu">transmute</span>(<span class="at">pct =</span> pct_part, <span class="at">Measure =</span> <span class="st">"Partial face"</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  df_full <span class="sc">|&gt;</span> <span class="fu">transmute</span>(<span class="at">pct =</span> pct_full, <span class="at">Measure =</span> <span class="st">"Full face"</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(pct) <span class="sc">|&gt;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> pct)) <span class="sc">+</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.025</span>)) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Measure, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.2</span>), <span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Share of session with a face visible"</span>, <span class="at">y =</span> <span class="st">"Sessions"</span>) <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="face_presence_files/figure-html/supp-hist-1.png" class="img-fluid figure-img" width="1950"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="s2.-monotonic-models" class="level3">
+<h3 class="anchored" data-anchor-id="s2.-monotonic-models">S2. Monotonic models</h3>
+<p>The linear models assume evenly spaced age effects. The monotonic models relax that, allowing the spacing between windows to be estimated.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_parameters</span>(part_monotonic, <span class="at">effects =</span> <span class="st">"fixed"</span>) <span class="sc">|&gt;</span> <span class="fu">print_md</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Fixed Effects</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: center;">Median</th>
+<th style="text-align: center;">95% CI</th>
+<th style="text-align: center;">pd</th>
+<th style="text-align: center;">Rhat</th>
+<th style="text-align: center;">ESS (tail)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: center;">-0.85</td>
+<td style="text-align: center;">(-1.06, -0.65)</td>
+<td style="text-align: center;">100%</td>
+<td style="text-align: center;">1.001</td>
+<td style="text-align: center;">2131</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">mowindow</td>
+<td style="text-align: center;">0.04</td>
+<td style="text-align: center;">(-0.03, 0.12)</td>
+<td style="text-align: center;">86.70%</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">2776</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_parameters</span>(full_monotonic, <span class="at">effects =</span> <span class="st">"fixed"</span>) <span class="sc">|&gt;</span> <span class="fu">print_md</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Fixed Effects</caption>
+<colgroup>
+<col style="width: 18%">
+<col style="width: 12%">
+<col style="width: 28%">
+<col style="width: 12%">
+<col style="width: 10%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: center;">Median</th>
+<th style="text-align: center;">95% CI</th>
+<th style="text-align: center;">pd</th>
+<th style="text-align: center;">Rhat</th>
+<th style="text-align: center;">ESS (tail)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: center;">-3.36</td>
+<td style="text-align: center;">(-3.62, -3.13)</td>
+<td style="text-align: center;">100%</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">2844</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">mowindow</td>
+<td style="text-align: center;">0.10</td>
+<td style="text-align: center;">(-7.11e-03, 0.21)</td>
+<td style="text-align: center;">96.88%</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">2392</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="s3.-model-checks" class="level3">
+<h3 class="anchored" data-anchor-id="s3.-model-checks">S3. Model checks</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(part_linear, <span class="at">ndraws =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="face_presence_files/figure-html/supp-ppc-1.png" class="img-fluid figure-img" width="1950"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(full_linear, <span class="at">ndraws =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="face_presence_files/figure-html/supp-ppc-2.png" class="img-fluid figure-img" width="1950"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="s4.-variance-decomposition" class="level3">
+<h3 class="anchored" data-anchor-id="s4.-variance-decomposition">S4. Variance decomposition</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>vd_part</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Random Effect Variances and ICC
+
+Conditioned on: all random effects
+
+## Variance Ratio (comparable to ICC)
+Ratio: 0.38  CI 95%: [0.11 0.58]
+
+## Variances of Posterior Predicted Distribution
+Conditioned on fixed effects: 0.01  CI 95%: [0.01 0.02]
+Conditioned on rand. effects: 0.02  CI 95%: [0.01 0.02]
+
+## Difference in Variances
+Difference: 0.01  CI 95%: [0.00 0.01]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>vd_full</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Random Effect Variances and ICC
+
+Conditioned on: all random effects
+
+## Variance Ratio (comparable to ICC)
+Ratio: 0.20  CI 95%: [-0.32 0.52]
+
+## Variances of Posterior Predicted Distribution
+Conditioned on fixed effects: 0.00  CI 95%: [0.00 0.00]
+Conditioned on rand. effects: 0.00  CI 95%: [0.00 0.00]
+
+## Difference in Variances
+Difference: 0.00  CI 95%: [-0.00 0.00]</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
