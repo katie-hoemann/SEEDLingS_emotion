@@ -84,9 +84,10 @@ df_part <-
   part |>
   filter(part_duration > 0) |>
   union_duration(part_onset, part_offset) |>
-  mutate(pct_part = sum_sec / session_duration) |>
-  arrange(subject, wave) |>
-  mutate(.by = subject, window = row_number() - 1) |>
+  mutate(
+    pct_part = sum_sec / session_duration,
+    window   = match(wave, c(6, 9, 12, 15)) - 1   # wave -> 0,1,2,3
+  ) |>
   complete(subject, window)
 
 df_full <-
